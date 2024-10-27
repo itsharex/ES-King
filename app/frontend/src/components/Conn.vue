@@ -23,7 +23,7 @@
                         删除
                       </n-button>
                     </template>
-                    确定删除该节点吗？
+                    确定删除吗？
                   </n-popconfirm>
                 </n-space>
               </template>
@@ -44,13 +44,13 @@
             ref="formRef"
             :model="currentNode"
             :rules="{
-              name: {required: true, message: '请输入节点名称', trigger: 'blur'},
+              name: {required: true, message: '请输入昵称', trigger: 'blur'},
               host: {required: true, message: '请输入主机地址', trigger: 'blur'},
               port: {required: true, type: 'number', message: '请输入有效的端口号', trigger: 'blur'},
             }"
             label-placement="left"
         >
-          <n-form-item label="节点名称" path="name">
+          <n-form-item label="昵称" path="name">
             <n-input v-model:value="currentNode.name" placeholder="输入节点名称"/>
           </n-form-item>
           <n-form-item label="协议://主机:端口" path="host">
@@ -72,7 +72,7 @@
           </n-form-item>
 
           <n-form-item label="跳过 SSL 验证" path="skipSSLVerify">
-            <n-switch v-model:value="currentNode.skipSSLVerify"/>
+            <n-switch value="true" v-model:value="currentNode.skipSSLVerify"/>
           </n-form-item>
 
           <n-form-item label="CA 证书" path="caCert">
@@ -112,7 +112,7 @@ const isEditing = ref(false)
 const spin_loading = ref(false)
 const test_connect_loading = ref(false)
 
-const drawerTitle = computed(() => isEditing.value ? '编辑 ES 连接' : '添加 ES 连接')
+const drawerTitle = computed(() => isEditing.value ? '编辑连接' : '添加连接')
 
 const formRef = ref(null)
 
