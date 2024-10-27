@@ -119,8 +119,8 @@ import {
 // 抽屉的可见性
 const drawerVisible = ref(false)
 const CreateIndexDrawerVisible = ref(false)
-const json_data = ref(null)
-const drawer_title = ref(null)
+const json_data = ref({})
+const drawer_title = ref("")
 const loading = ref(false)
 const tableRef = ref();
 const formRef = ref();
