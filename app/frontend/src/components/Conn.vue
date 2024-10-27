@@ -107,7 +107,16 @@ const message = useMessage()
 const esNodes = ref([])
 
 const showEditDrawer = ref(false)
-const currentNode = ref({})
+const currentNode = ref({
+  name: '',
+  host: '',
+  port: 9200,
+  username: '',
+  password: '',
+  useSSL: false,
+  skipSSLVerify: false,
+  caCert: ''
+})
 const isEditing = ref(false)
 const spin_loading = ref(false)
 const test_connect_loading = ref(false)
@@ -134,16 +143,7 @@ function editNode(node) {
 }
 
 const addNewNode = async () => {
-  currentNode.value = {
-    name: '',
-    host: '',
-    port: 9200,
-    username: '',
-    password: '',
-    useSSL: false,
-    skipSSLVerify: false,
-    caCert: ''
-  }
+  currentNode.value = {}
   isEditing.value = false
   showEditDrawer.value = true
 }
@@ -155,24 +155,18 @@ const saveNode = async () => {
       const config = await GetConfig()
       // edit
       if (isEditing.value) {
-        console.log("edit")
         const index = esNodes.value.findIndex(node => node.id === currentNode.value.id)
-        console.log(index)
-        console.log(currentNode.value)
         if (index !== -1) {
           esNodes.value[index] = {...currentNode.value}
-          console.log(currentNode.value)
         }
       } else {
         // add
         const newId = Math.max(...esNodes.value.map(node => node.id), 0) + 1
         esNodes.value.push({...currentNode.value, id: newId})
       }
-      console.log(config)
 
       // 保存
       config.connects = esNodes.value
-      console.log(config)
       await SaveConfig(config)
       showEditDrawer.value = false
 
@@ -216,19 +210,21 @@ const selectNode = async (node) => {
   console.log('选中节点:', node)
   spin_loading.value = true
 
-  // node：{ id: 1, name: 'ES节点1', host: 'localhost', port: 9200, username: 'user1', password: 'pass1' },
-  const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+  try {
+    const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+    if (res !== "") {
+      message.error("连接失败：" + res)
+    } else {
+      message.success('连接成功')
+      await SetConnect(node.name, node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+      emitter.emit('menu_select', "节点")
+      emitter.emit('selectNode', node)
+    }
+  }catch (e) {
+    message.error(e)
+  }
   spin_loading.value = false
 
-  console.log(res)
-  if (res !== "") {
-    message.error("连接失败：" + res)
-  } else {
-    message.success('连接成功')
-    await SetConnect(node.name, node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
-    emitter.emit('menu_select', "节点")
-    emitter.emit('selectNode', node)
-  }
 }
 </script>
 
