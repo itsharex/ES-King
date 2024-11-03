@@ -1,9 +1,6 @@
 <script setup>
 import {onMounted} from "vue";
 import emitter from "../utils/eventBus";
-import {BrowserOpenURL} from "../../wailsjs/runtime";
-import {renderIcon} from "../utils/common";
-import {HouseTwotone} from "@vicons/material";
 
 onMounted(async () => {
   emitter.on('selectNode', selectNode)

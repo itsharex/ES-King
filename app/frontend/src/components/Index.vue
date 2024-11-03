@@ -24,7 +24,6 @@
           :pagination="pagination"
           size="small"
           :bordered="false"
-          :max-height="600"
           striped
           :row-key="rowKey"
           v-model:checked-row-keys="selectedRowKeys"
@@ -353,6 +352,7 @@ const mergeSegments = async (row) => {
     json_data.value = formattedJson(res.result)
     drawer_title.value = row.index
     drawerVisible.value = true
+    message.success("已提交段合并请求，段合并是重IO任务，请注意集群负载")
     await search()
   }
 }

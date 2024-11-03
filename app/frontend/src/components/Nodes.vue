@@ -15,6 +15,7 @@
           size="small"
           :bordered="false"
           striped
+          :pagination="pagination"
       />
     </n-spin>
   </n-flex>
@@ -78,6 +79,20 @@ const renderProgress = (row, key) => {
     borderRadius: 4
   })
 }
+
+const pagination = ref({
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [5, 10, 20, 30, 40],
+  onChange: (page) => {
+    pagination.value.page = page
+  },
+  onUpdatePageSize: (pageSize) => {
+    pagination.value.pageSize = pageSize
+    pagination.value.page = 1
+  },
+})
 
 const columns = [
   { title: 'IP', key: 'ip', sorter: 'default',width: 100,resizable: true },
