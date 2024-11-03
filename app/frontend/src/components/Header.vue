@@ -42,13 +42,13 @@ import {
   NightlightRoundFilled,
   ContentCopyFilled
 } from '@vicons/material'
-import icon from '../assets/images/icon.png'
+import icon from '../assets/images/appicon.png'
 import {h, onMounted, ref, shallowRef} from "vue";
 import {BrowserOpenURL, Quit, WindowMaximise, WindowMinimise, WindowUnmaximise} from "../../wailsjs/runtime";
 import {CheckUpdate} from '../../wailsjs/go/system/Update'
 import {useNotification} from 'naive-ui'
 import {openUrl, renderIcon} from "../utils/common";
-import {GetConfig, SaveTheme, GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
+import {GetConfig, GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
 defineProps(['options', 'value']);
