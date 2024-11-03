@@ -1,8 +1,9 @@
 <template>
-  <h2 style="width: 42px;">REST</h2>
-
-  <n-flex vertical size="large">
-    <n-flex>
+  <n-flex vertical>
+    <n-flex  align="center">
+      <h2 style="max-width: 60px;">REST</h2>
+    </n-flex>
+    <n-flex  align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
       <n-input v-model:value="path" placeholder="输入url path，以/开头" autosize
                style="min-width: 300px;text-align: left"/>
