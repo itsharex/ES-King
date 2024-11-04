@@ -287,6 +287,7 @@ const columns = [
     }
   }
 ]
+
 const handleMenuSelect = async (key, row) => {
   const func = {
     "viewDetails": viewIndexDetails,
