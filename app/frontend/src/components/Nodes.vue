@@ -1,7 +1,7 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2 style="width: 42px;">节点</h2>
+      <h2 style="max-width: 200px;">节点</h2>
       <n-button @click="getData" text :render-icon="renderIcon(RefreshOutlined)">refresh</n-button>
       <n-text>共计{{ data.length }}个</n-text>
       <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
@@ -15,6 +15,7 @@
           size="small"
           :bordered="false"
           striped
+          :pagination="pagination"
       />
     </n-spin>
   </n-flex>
@@ -78,6 +79,20 @@ const renderProgress = (row, key) => {
     borderRadius: 4
   })
 }
+
+const pagination = ref({
+  page: 1,
+  pageSize: 10,
+  showSizePicker: true,
+  pageSizes: [5, 10, 20, 30, 40],
+  onChange: (page) => {
+    pagination.value.page = page
+  },
+  onUpdatePageSize: (pageSize) => {
+    pagination.value.pageSize = pageSize
+    pagination.value.page = 1
+  },
+})
 
 const columns = [
   { title: 'IP', key: 'ip', sorter: 'default',width: 100,resizable: true },

@@ -72,7 +72,6 @@ import Index from './components/Index.vue'
 import Rest from './components/Rest.vue'
 import Conn from './components/Conn.vue'
 import Task from './components/Task.vue'
-import Issue from './components/Issue.vue'
 import Snapshot from './components/Snapshot.vue'
 import {GetConfig, SaveTheme} from "../wailsjs/go/config/AppConfig";
 import {WindowSetSize} from "../wailsjs/runtime";
@@ -83,7 +82,7 @@ import {
   FavoriteTwotone,
   HiveOutlined,
   SettingsSuggestOutlined,TaskAltFilled,
-  AutoGraphOutlined, ApiOutlined, LibraryBooksOutlined, AllOutOutlined, BarChartOutlined, AddAPhotoTwotone
+  ApiOutlined, LibraryBooksOutlined, AllOutOutlined, BarChartOutlined, AddAPhotoTwotone
 } from '@vicons/material'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
@@ -163,12 +162,6 @@ const sideMenuOptions = [
     key: '快照',
     icon: renderIcon(AddAPhotoTwotone),
     component: Snapshot,
-  },
-  {
-    label: '建议',
-    key: '建议',
-    icon: renderIcon(AutoGraphOutlined),
-    component: Issue,
   },
   {
     label: '设置',

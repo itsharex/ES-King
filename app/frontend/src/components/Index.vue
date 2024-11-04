@@ -2,7 +2,7 @@
   <n-flex vertical>
 
     <n-flex align="center">
-      <h2 style="width: 42px;">索引</h2>
+      <h2 style="max-width: 200px;">索引</h2>
       <n-text>共计{{ data.length }}个</n-text>
     </n-flex>
     <n-flex align="center">
@@ -24,7 +24,6 @@
           :pagination="pagination"
           size="small"
           :bordered="false"
-          :max-height="600"
           striped
           :row-key="rowKey"
           v-model:checked-row-keys="selectedRowKeys"
@@ -354,6 +353,7 @@ const mergeSegments = async (row) => {
     json_data.value = formattedJson(res.result)
     drawer_title.value = row.index
     drawerVisible.value = true
+    message.success("已提交段合并请求，段合并是重IO任务，请注意集群负载")
     await search()
   }
 }
