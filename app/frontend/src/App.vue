@@ -21,6 +21,7 @@
               <n-layout-sider
                   bordered
                   :width="60"
+                  :collapsed="true"
                   style="--wails-draggable:drag"
               >
                 <Aside
