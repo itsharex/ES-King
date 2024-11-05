@@ -139,6 +139,8 @@ let aliases = {};
 
 const selectNode = (node) => {
   data.value = []
+  selectedRowKeys.value = []
+  aliases = []
 }
 
 onMounted(async () => {

@@ -43,7 +43,7 @@ import {
 } from "../../wailsjs/go/service/ESService";
 
 const drawerVisible = ref(false)
-const json_data = ref(null)
+const json_data = ref()
 
 const loading = ref(false)
 const data = ref([])
@@ -52,6 +52,12 @@ const selectedRowKeys = ref([]);
 const rowKey = (row) => row['task_id']
 
 const selectNode = async (node) => {
+  drawerVisible.value = false
+  json_data.value = null
+  loading.value = false
+  data.value = []
+  selectedRowKeys.value = []
+
   await getData()
 }
 

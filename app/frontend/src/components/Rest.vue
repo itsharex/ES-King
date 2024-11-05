@@ -115,8 +115,8 @@ import emitter from "../utils/eventBus";
 const message = useMessage()
 const method = ref('GET')
 const path = ref('')
-const editor = ref(null);
-const response = ref(null)
+const editor = ref();
+const response = ref()
 const send_loading = ref(false)
 const showDrawer = ref(false)
 
@@ -130,6 +130,10 @@ const methodOptions = [
   {label: 'DELETE', value: 'DELETE'}
 ]
 
+const selectNode = (node) => {
+  response.value.setText('{"tip": "响应结果，支持搜索"}')
+  send_loading.value = false
+}
 
 onMounted(async () => {
 
@@ -168,10 +172,6 @@ function themeChange(newTheme) {
 
 }
 
-const selectNode = (node) => {
-  console.log("clear")
-  response.value.setText('{"tip": "响应结果，支持搜索"}')
-}
 
 const sendRequest = async () => {
   send_loading.value = true
