@@ -20,7 +20,8 @@
             <n-layout has-sider position="absolute" style="top: 42px; bottom: 0;">
               <n-layout-sider
                   bordered
-                  :width="60"
+                  collapse-mode="width"
+                  :collapsed-width="60"
                   :collapsed="true"
                   style="--wails-draggable:drag"
               >

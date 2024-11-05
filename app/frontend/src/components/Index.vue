@@ -201,8 +201,13 @@ const columns = [
   },
   {
     title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: true},
-    render: (row) => h('a',{onClick: () => viewIndexDocs(row)}, {default: () => row['index']}),
-
+    render: (row) => h(NButton, {
+          tertiary: true,
+          type: "info",
+          onClick: () => viewIndexDocs(row)
+        },
+        {default: () => row['index']}
+    )
   },
   {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: true}},
   {
@@ -282,7 +287,7 @@ const columns = [
                   strong: true,
                   secondary: true,
                 },
-                {default: () => '操作', icon: () => h(NIcon, null, { default: () => h(MoreVertFilled) })}
+                {default: () => '操作', icon: () => h(NIcon, null, {default: () => h(MoreVertFilled)})}
             )
           }
       )
@@ -343,7 +348,7 @@ const viewIndexDocs = async (row) => {
       drawer_title.value = row.index
       drawerVisible.value = true
     }
-  }catch (e) {
+  } catch (e) {
     message.error(e)
   }
   loading.value = false
