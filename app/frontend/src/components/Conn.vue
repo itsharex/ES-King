@@ -48,7 +48,8 @@
               host: {required: true, message: '请输入主机地址', trigger: 'blur'},
               port: {required: true, type: 'number', message: '请输入有效的端口号', trigger: 'blur'},
             }"
-            label-placement="left"
+            label-placement="top"
+            style="text-align: left;"
         >
           <n-form-item label="昵称" path="name">
             <n-input v-model:value="currentNode.name" placeholder="输入节点名称"/>

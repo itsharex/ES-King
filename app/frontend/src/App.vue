@@ -20,19 +20,11 @@
             <n-layout has-sider position="absolute" style="top: 42px; bottom: 0;">
               <n-layout-sider
                   bordered
-                  collapse-mode="width"
-                  :collapsed-width="60"
-                  :width="130"
-                  :collapsed="collapsed"
-                  show-trigger
-                  @collapse="collapsed = true"
-                  @expand="collapsed = false"
+                  :width="60"
                   style="--wails-draggable:drag"
               >
                 <Aside
                     :collapsed-width="60"
-                    :collapsed="collapsed"
-                    :icon-size="24"
                     :value="activeItem.label"
                     :options="sideMenuOptions"
                 />

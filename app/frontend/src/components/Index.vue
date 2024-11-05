@@ -47,7 +47,8 @@
       <n-drawer-content title="创建索引" style="text-align: left;">
         <n-form
             :model="indexConfig"
-            label-placement="left"
+            label-placement="top"
+            style="text-align: left;"
             ref="formRef"
             :rules="{
               name: {required: true, message: '请输入索引名称', trigger: 'blur'},
