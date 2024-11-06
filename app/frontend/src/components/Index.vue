@@ -200,7 +200,7 @@ const columns = [
     type: "selection",
   },
   {
-    title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: true},
+    title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
     render: (row) => h(NButton, {
           tertiary: true,
           type: "info",
@@ -209,7 +209,7 @@ const columns = [
         {default: () => row['index']}
     )
   },
-  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: true}},
+  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
   {
     title: '健康',
     key: 'health',
