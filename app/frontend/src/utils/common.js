@@ -103,3 +103,7 @@ export function formatDate(date){
   const seconds = String(date.getSeconds()).padStart(2, '0');
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
+
+export function formatTimestamp(timestamp){
+  return new Date(timestamp).toLocaleString()
+}

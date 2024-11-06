@@ -11,6 +11,12 @@ type Config struct {
 	Theme    string    `json:"theme"`
 	Connects []Connect `json:"connects"`
 }
+type History struct {
+	Time   int    `json:"timestamp"`
+	Method string `json:"method"`
+	Path   string `json:"path"`
+	DSL    string `json:"dsl"`
+}
 type ResultsResp struct {
 	Results []interface{} `json:"results"`
 	Err     string        `json:"err"`
