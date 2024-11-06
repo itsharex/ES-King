@@ -117,6 +117,8 @@ const checkForUpdates = async () => {
 }
 
 onMounted(async () => {
+  emitter.on('selectNode', selectNode)
+
   app_name.value = await GetAppName()
 
   const config = await GetConfig()
@@ -126,7 +128,6 @@ onMounted(async () => {
   subtitle.value = desc + v
   await checkForUpdates()
 
-  emitter.on('selectNode', selectNode)
 })
 
 const selectNode = (node) => {

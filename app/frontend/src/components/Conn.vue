@@ -48,7 +48,8 @@
               host: {required: true, message: '请输入主机地址', trigger: 'blur'},
               port: {required: true, type: 'number', message: '请输入有效的端口号', trigger: 'blur'},
             }"
-            label-placement="left"
+            label-placement="top"
+            style="text-align: left;"
         >
           <n-form-item label="昵称" path="name">
             <n-input v-model:value="currentNode.name" placeholder="输入节点名称"/>
@@ -191,19 +192,27 @@ const deleteNode = async (id) => {
 }
 
 const test_connect = async () => {
-  test_connect_loading.value = true
-  try {
-    const node = currentNode.value
-    const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
-    if (res !== "") {
-      message.error("连接失败：" + res)
+  formRef.value?.validate(async (errors) => {
+    if (!errors) {
+
+      test_connect_loading.value = true
+      try {
+        const node = currentNode.value
+        const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+        if (res !== "") {
+          message.error("连接失败：" + res)
+        } else {
+          message.success('连接成功')
+        }
+      } catch (e) {
+        message.error(e)
+      }
+      test_connect_loading.value = false
+
     } else {
-      message.success('连接成功')
+      message.error('请填写所有必填字段')
     }
-  }catch (e) {
-    message.error(e)
-  }
-  test_connect_loading.value = false
+  })
 }
 const selectNode = async (node) => {
   // 这里实现切换菜单的逻辑
@@ -220,7 +229,7 @@ const selectNode = async (node) => {
       emitter.emit('menu_select', "节点")
       emitter.emit('selectNode', node)
     }
-  }catch (e) {
+  } catch (e) {
     message.error(e)
   }
   spin_loading.value = false

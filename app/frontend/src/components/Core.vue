@@ -49,6 +49,10 @@ const loading = ref(false)
 const data = ref({})
 const message = useMessage()
 
+const selectNode = async (node) => {
+  await getData()
+}
+
 onMounted(async () => {
   emitter.on('selectNode', selectNode)
   await getData()
@@ -210,9 +214,7 @@ const getLabel = (key) => {
   return descriptions[key] || '暂无说明'
 }
 
-const selectNode = async (node) => {
-  await getData()
-}
+
 </script>
 
 <style scoped>

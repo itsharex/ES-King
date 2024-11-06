@@ -50,11 +50,12 @@ const loading = ref(false)
 
 const message = useMessage()
 
-onMounted(async () => {
+const selectNode = async (node) => {
   await getData()
-})
+}
 
-onActivated(async () => {
+onMounted(async () => {
+  emitter.on('selectNode', selectNode)
   await getData()
 })
 

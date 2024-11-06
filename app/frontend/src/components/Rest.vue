@@ -157,8 +157,8 @@ const method = ref('GET')
 const path = ref('')
 const searchText = ref('')
 const history = ref([])
-const editor = ref(null);
-const response = ref(null)
+const editor = ref();
+const response = ref()
 const send_loading = ref(false)
 const showDrawer = ref(false)
 const showHistoryDrawer = ref(false)
@@ -177,8 +177,8 @@ const methodOptions = [
 ]
 
 const selectNode = (node) => {
-  console.log("clear")
   response.value.setText('{"tip": "响应结果，支持搜索"}')
+  send_loading.value = false
 }
 
 onMounted(async () => {
