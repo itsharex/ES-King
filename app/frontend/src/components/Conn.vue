@@ -224,8 +224,8 @@ const selectNode = async (node) => {
     if (res !== "") {
       message.error("连接失败：" + res)
     } else {
-      message.success('连接成功')
       await SetConnect(node.name, node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+      message.success('连接成功')
       emitter.emit('menu_select', "节点")
       emitter.emit('selectNode', node)
     }
