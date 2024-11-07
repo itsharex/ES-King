@@ -23,7 +23,7 @@
     </n-grid>
   </n-flex>
   <!--  示例-->
-  <n-drawer v-model:show="showDrawer" :width="500" placement="right">
+  <n-drawer v-model:show="showDrawer" style="width: 38.2%" placement="right">
     <n-drawer-content title="ES DSL查询示例" style="text-align: left;">
       <n-flex vertical>
         <n-collapse>

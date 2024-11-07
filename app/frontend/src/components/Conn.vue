@@ -38,7 +38,7 @@
       </n-spin>
     </n-flex>
 
-    <n-drawer v-model:show="showEditDrawer" :width="500" placement="right">
+    <n-drawer v-model:show="showEditDrawer" style="width: 38.2%" placement="right">
       <n-drawer-content :title="drawerTitle">
         <n-form
             ref="formRef"

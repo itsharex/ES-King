@@ -25,7 +25,7 @@
     </n-spin>
   </n-flex>
 
-  <n-drawer v-model:show="drawerVisible" :width="500">
+  <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
     <n-drawer-content title="结果" style="text-align: left;">
       <n-code :code="json_data" language="json" show-line-numbers/>
     </n-drawer-content>
