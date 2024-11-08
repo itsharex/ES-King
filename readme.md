@@ -1,5 +1,6 @@
-![](docs/snap/2.png)
-
+<p align="center">
+  <img src="app/build/appicon.png" alt="图片标题" width="382">
+</p>
 <h1 align="center">ES-King </h1>
 <h4 align="center"><strong>简体中文</strong> | <a href="https://github.com/Bronya0/ES-King/blob/wails/readme-en.md">English</a></h4>
 
