@@ -17,7 +17,7 @@
 
 </div>
 
-同款已经开发好的Kafka客户端，已有一千多人下载：[Kafka-King](https://github.com/Bronya0/Kafka-King)
+同款已经开发好的Kafka客户端，已有数千人下载：[Kafka-King](https://github.com/Bronya0/Kafka-King)
 
 如需提出需求、bug和改进建议，请提issue。
 
