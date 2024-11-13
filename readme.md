@@ -1,5 +1,6 @@
-![](docs/snap/2.png)
-
+<p align="center">
+  <img src="app/build/appicon.png" alt="图片标题" width="200">
+</p>
 <h1 align="center">ES-King </h1>
 <h4 align="center"><strong>简体中文</strong> | <a href="https://github.com/Bronya0/ES-King/blob/wails/readme-en.md">English</a></h4>
 
@@ -16,7 +17,7 @@
 
 </div>
 
-同款已经开发好的Kafka客户端，已有一千多人下载：[Kafka-King](https://github.com/Bronya0/Kafka-King)
+同款已经开发好的Kafka客户端，已有数千人下载：[Kafka-King](https://github.com/Bronya0/Kafka-King)
 
 如需提出需求、bug和改进建议，请提issue。
 
