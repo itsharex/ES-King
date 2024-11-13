@@ -201,9 +201,9 @@ const columns = [
   },
   {
     title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
-    render: (row) => h(NButton, {
-          tertiary: true,
-          type: "info",
+    render: (row) => h(NText, {
+          type: 'info',
+          style: {cursor: 'pointer'},
           onClick: () => viewIndexDocs(row)
         },
         {default: () => row['index']}
