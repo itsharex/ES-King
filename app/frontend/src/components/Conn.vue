@@ -38,7 +38,7 @@
       </n-spin>
     </n-flex>
 
-    <n-drawer v-model:show="showEditDrawer" :width="500" placement="right">
+    <n-drawer v-model:show="showEditDrawer" style="width: 38.2%" placement="right">
       <n-drawer-content :title="drawerTitle">
         <n-form
             ref="formRef"
@@ -224,8 +224,8 @@ const selectNode = async (node) => {
     if (res !== "") {
       message.error("连接失败：" + res)
     } else {
-      message.success('连接成功')
       await SetConnect(node.name, node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
+      message.success('连接成功')
       emitter.emit('menu_select', "节点")
       emitter.emit('selectNode', node)
     }

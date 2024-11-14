@@ -37,13 +37,13 @@
     </n-flex>
 
 
-    <n-drawer v-model:show="drawerVisible" :width="500">
+    <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
       <n-drawer-content :title="drawer_title" style="text-align: left;">
         <n-code :code="json_data" language="json" show-line-numbers/>
       </n-drawer-content>
     </n-drawer>
 
-    <n-drawer v-model:show="CreateIndexDrawerVisible" :width="500">
+    <n-drawer v-model:show="CreateIndexDrawerVisible" style="width: 38.2%">
       <n-drawer-content title="创建索引" style="text-align: left;">
         <n-form
             :model="indexConfig"
@@ -200,16 +200,16 @@ const columns = [
     type: "selection",
   },
   {
-    title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: true},
-    render: (row) => h(NButton, {
-          tertiary: true,
-          type: "info",
+    title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
+    render: (row) => h(NText, {
+          type: 'info',
+          style: {cursor: 'pointer'},
           onClick: () => viewIndexDocs(row)
         },
         {default: () => row['index']}
     )
   },
-  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: true}},
+  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
   {
     title: '健康',
     key: 'health',

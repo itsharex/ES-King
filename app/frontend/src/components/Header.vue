@@ -1,7 +1,16 @@
 <template>
-  <n-page-header :subtitle="subtitle" style="padding: 4px;--wails-draggable:drag">
+  <n-page-header style="padding: 4px;--wails-draggable:drag">
     <template #avatar>
       <n-avatar :src="icon"/>
+    </template>
+    <template #subtitle>
+      <n-tooltip>
+        <template #trigger>
+          <n-tag :type=title_tag v-if="subtitle">{{subtitle}}</n-tag>
+          <n-p v-else>{{desc}}</n-p>
+        </template>
+        健康：{{title_tag}}
+      </n-tooltip>
     </template>
     <template #title>
       <div style="font-weight: 800">{{ app_name }}</div>
@@ -55,6 +64,7 @@ defineProps(['options', 'value']);
 
 const MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
 const isMaximized = ref(false);
+const title_tag = ref("success");
 const check_msg = ref("");
 const app_name = ref("");
 const MaxMinIcon = shallowRef(CropSquareFilled)
@@ -118,6 +128,7 @@ const checkForUpdates = async () => {
 
 onMounted(async () => {
   emitter.on('selectNode', selectNode)
+  emitter.on('changeTitleType', changeTitleType)
 
   app_name.value = await GetAppName()
 
@@ -125,13 +136,19 @@ onMounted(async () => {
   MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
   const v = await GetVersion()
   version.value.tag_name = v
-  subtitle.value = desc + v
+  subtitle.value = v
   await checkForUpdates()
 
 })
 
 const selectNode = (node) => {
-  subtitle.value = desc + " ==> 当前集群：【" + node.name + "】"
+  subtitle.value = "当前集群：【" + node.name + "】"
+}
+
+// 动态修改title的类型
+const changeTitleType = (type) => {
+  console.log(type)
+  title_tag.value = type
 }
 
 const minimizeWindow = () => {

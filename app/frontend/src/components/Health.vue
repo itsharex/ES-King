@@ -67,6 +67,8 @@ const getData = async () => {
     message.error(res.err)
   } else {
     data.value = res.result
+    emitter.emit('changeTitleType', getTagType("status", res.result['status']))
+
   }
   console.log(data.value)
   loading.value = false
