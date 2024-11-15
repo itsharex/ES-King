@@ -102,7 +102,7 @@ func (es *ESService) GetNodes() *types.ResultsResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultsResp{Err: "请先选择一个集群"}
 	}
-	var result []interface{}
+	var result []any
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + NodesApi)
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
@@ -117,7 +117,7 @@ func (es *ESService) GetHealth() *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + HealthApi)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
@@ -132,7 +132,7 @@ func (es *ESService) GetStats() *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + StatsApi)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
@@ -153,7 +153,7 @@ func (es *ESService) GetIndexes(name string) *types.ResultsResp {
 		newUrl += "&index=" + "*" + name + "*"
 	}
 	log.Println(newUrl)
-	var result []interface{}
+	var result []any
 
 	resp, err := es.Client.R().SetResult(&result).Get(newUrl)
 	if err != nil {
@@ -203,7 +203,7 @@ func (es *ESService) GetIndexInfo(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + "/" + indexName)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
@@ -219,7 +219,7 @@ func (es *ESService) DeleteIndex(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	resp, err := es.Client.R().SetResult(&result).Delete(es.ConnectObj.Host + "/" + indexName)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
@@ -235,7 +235,7 @@ func (es *ESService) OpenCloseIndex(indexName, now string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 	action := map[string]string{
 		"open":  "_close",
 		"close": "_open",
@@ -255,7 +255,7 @@ func (es *ESService) GetIndexMappings(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + "/" + indexName)
 	if err != nil {
@@ -272,7 +272,7 @@ func (es *ESService) MergeSegments(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Post(es.ConnectObj.Host + "/" + indexName + ForceMerge)
 	if err != nil {
@@ -289,7 +289,7 @@ func (es *ESService) Refresh(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Post(es.ConnectObj.Host + "/" + indexName + REFRESH)
 	if err != nil {
@@ -305,7 +305,7 @@ func (es *ESService) Flush(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Post(es.ConnectObj.Host + "/" + indexName + FLUSH)
 	if err != nil {
@@ -321,7 +321,7 @@ func (es *ESService) CacheClear(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Post(es.ConnectObj.Host + "/" + indexName + CacheClear)
 	if err != nil {
@@ -339,17 +339,17 @@ func (es *ESService) GetDoc10(indexName string) *types.ResultResp {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
 
-	body := map[string]interface{}{
-		"query": map[string]interface{}{
-			"query_string": map[string]interface{}{
+	body := map[string]any{
+		"query": map[string]any{
+			"query_string": map[string]any{
 				"query": "*",
 			},
 		},
 		"size": 10,
 		"from": 0,
-		"sort": []interface{}{},
+		"sort": []any{},
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().
 		SetBody(body).
@@ -364,11 +364,11 @@ func (es *ESService) GetDoc10(indexName string) *types.ResultResp {
 	return &types.ResultResp{Result: result}
 }
 
-func (es *ESService) Search(method, path string, body interface{}) *types.ResultResp {
+func (es *ESService) Search(method, path string, body any) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().
 		SetBody(body).
@@ -388,7 +388,7 @@ func (es *ESService) GetClusterSettings() *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + ClusterSettings)
 	if err != nil {
@@ -404,7 +404,7 @@ func (es *ESService) GetIndexSettings(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + "/" + indexName)
 	if err != nil {
@@ -420,7 +420,7 @@ func (es *ESService) GetIndexAliases(indexNameList []string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	indexNames := strings.Join(indexNameList, ",")
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + "/" + indexNames + "/_alias")
@@ -431,11 +431,11 @@ func (es *ESService) GetIndexAliases(indexNameList []string) *types.ResultResp {
 	if resp.StatusCode() != 200 {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
-	alias := make(map[string]interface{})
+	alias := make(map[string]any)
 	for name, obj := range result {
-		if aliases, ok := obj.(map[string]interface{})["aliases"]; ok {
+		if aliases, ok := obj.(map[string]any)["aliases"]; ok {
 			names := make([]string, 0)
-			for aliasName := range aliases.(map[string]interface{}) {
+			for aliasName := range aliases.(map[string]any) {
 				names = append(names, aliasName)
 			}
 			if len(names) > 0 {
@@ -450,7 +450,7 @@ func (es *ESService) GetIndexSegments(indexName string) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + "/" + indexName)
 	if err != nil {
@@ -466,7 +466,7 @@ func (es *ESService) GetTasks() *types.ResultsResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultsResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + TasksApi)
 	if err != nil {
@@ -475,20 +475,20 @@ func (es *ESService) GetTasks() *types.ResultsResp {
 	if resp.StatusCode() != 200 {
 		return &types.ResultsResp{Err: string(resp.Body())}
 	}
-	nodes := result["nodes"].(map[string]interface{})
+	nodes := result["nodes"].(map[string]any)
 
-	var data []interface{}
+	var data []any
 	for _, nodeObj := range nodes {
-		nodeTasks, ok := nodeObj.(map[string]interface{})["tasks"].(map[string]interface{})
+		nodeTasks, ok := nodeObj.(map[string]any)["tasks"].(map[string]any)
 		if !ok {
 			continue
 		}
 		for taskID, taskInfo := range nodeTasks {
-			taskInfoMap := taskInfo.(map[string]interface{})
-			data = append(data, map[string]interface{}{
+			taskInfoMap := taskInfo.(map[string]any)
+			data = append(data, map[string]any{
 				"task_id":               taskID,
-				"node_name":             nodeObj.(map[string]interface{})["name"],
-				"node_ip":               nodeObj.(map[string]interface{})["ip"],
+				"node_name":             nodeObj.(map[string]any)["name"],
+				"node_ip":               nodeObj.(map[string]any)["ip"],
 				"type":                  taskInfoMap["type"],
 				"action":                taskInfoMap["action"],
 				"start_time_in_millis":  taskInfoMap["start_time_in_millis"],
@@ -507,7 +507,7 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 	}
 
 	newUrl := fmt.Sprintf(es.ConnectObj.Host+CancelTasksApi, url.PathEscape(taskID))
-	var result map[string]interface{}
+	var result map[string]any
 
 	resp, err := es.Client.R().SetResult(&result).Post(newUrl)
 	if err != nil {

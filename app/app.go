@@ -31,7 +31,7 @@ func (a *App) domReady(ctx context.Context) {
 
 	// 统计版本使用情况
 	client := resty.New().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-	body := map[string]interface{}{
+	body := map[string]any{
 		"name":     "ES-King",
 		"version":  common.Version,
 		"platform": runtime.GOOS,

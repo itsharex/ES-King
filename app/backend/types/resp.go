@@ -18,12 +18,12 @@ type History struct {
 	DSL    string `json:"dsl"`
 }
 type ResultsResp struct {
-	Results []interface{} `json:"results"`
-	Err     string        `json:"err"`
+	Results []any  `json:"results"`
+	Err     string `json:"err"`
 }
 type ResultResp struct {
-	Result map[string]interface{} `json:"result"`
-	Err    string                 `json:"err"`
+	Result map[string]any `json:"result"`
+	Err    string         `json:"err"`
 }
 type Connect struct {
 	Id            int    `json:"id"`
@@ -35,4 +35,4 @@ type Connect struct {
 	SkipSSLVerify bool   `json:"skipSSLVerify"`
 	CACert        string `json:"caCert"`
 }
-type H map[string]interface{}
+type H map[string]any
