@@ -115,7 +115,7 @@
         />
 
           <n-list-item v-for="item in currentPageData" :key="item.timestamp" >
-              <n-tooltip placement="left" trigger="hover">
+              <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
                 <template #trigger>
                   <div style="display: flex;font-size: 14px; justify-content: space-between;">
                     <n-tag :type="getMethodTagType(item.method)">
@@ -506,4 +506,5 @@ const dslExamples = {
 .editarea, .json_view {
   height: 72dvh;
 }
+
 </style>
