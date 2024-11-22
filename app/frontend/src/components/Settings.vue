@@ -10,7 +10,7 @@
         <n-button @click="BrowserOpenURL(home_url)" :render-icon="renderIcon(HouseTwotone)">ES-King 项目主页</n-button>
       </n-form-item>
       <n-form-item label="同款 Kafka 客户端">
-        <n-button @click="BrowserOpenURL(kafka_home_url)" :render-icon="renderIcon(HouseTwotone)">推荐同款 KafKa
+        <n-button @click="BrowserOpenURL(kafka_home_url)" :render-icon="renderIcon(HouseTwotone)">推荐同款 KafKa</n-button>
       </n-form-item>
       <n-form-item label="窗口宽度">
         <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
