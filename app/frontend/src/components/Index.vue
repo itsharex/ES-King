@@ -93,7 +93,7 @@
 <script setup>
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
-import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage} from 'naive-ui'
+import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage,  useDialog} from 'naive-ui'
 import {createCsvContent, download_file, formatBytes, formattedJson, isValidJson, renderIcon} from "../utils/common";
 import {
   AddFilled,
@@ -132,6 +132,8 @@ const indexConfig = ref({
 });
 const data = ref([])
 const message = useMessage()
+const dialog = useDialog()
+
 const search_text = ref("")
 const selectedRowKeys = ref([]);
 const rowKey = (row) => row.index
@@ -354,6 +356,17 @@ const viewIndexDocs = async (row) => {
   loading.value = false
 }
 const mergeSegments = async (row) => {
+  dialog.info({
+    title: '警告',
+    content: `确定要对索引 ${row.index} 执行 段合并 吗？段合并非常耗资源，将提交给ES后台执行`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      await mergeSegmentsFunc(row)
+    }
+  })
+}
+const mergeSegmentsFunc = async (row) => {
   const res = await MergeSegments(row.index)
   if (res.err !== "") {
     message.error(res.err)
@@ -366,6 +379,17 @@ const mergeSegments = async (row) => {
   }
 }
 const deleteIndex = async (row) => {
+  dialog.info({
+    title: '警告',
+    content: `确定要删除索引 ${row.index} 吗？`,
+    positiveText: '确定',
+    negativeText: '取消',
+    onPositiveClick: async () => {
+      await deleteIndexFunc(row)
+    }
+  })
+}
+const deleteIndexFunc = async (row) => {
   const res = await DeleteIndex(row.index)
   if (res.err !== "") {
     message.error(res.err)
@@ -490,28 +514,39 @@ const queryAlias = async () => {
   loading.value = false
 }
 
+const bulk_delete = async () => {
+  loading.value = true
+  let success_count = 0
+  console.log(selectedRowKeys.value)
+  for (const Key in selectedRowKeys.value) {
+    const res = await DeleteIndex(selectedRowKeys.value[Key])
+    if (res.err !== "") {
+      message.error(res.err)
+      break
+    } else {
+      success_count += 1
+    }
+  }
+  // 提示删除了几个，失败了几个
+  message.success(`成功删除 ${success_count} 个索引`)
+  loading.value = false
+  await search()
+}
 const bulk_options = [
   {
     label: '批量删除',
     key: 'bulk_delete',
     props: {
       onClick: async () => {
-        loading.value = true
-        let success_count = 0
-        console.log(selectedRowKeys.value)
-        for (const Key in selectedRowKeys.value) {
-          const res = await DeleteIndex(selectedRowKeys.value[Key])
-          if (res.err !== "") {
-            message.error(res.err)
-            break
-          } else {
-            success_count += 1
+        dialog.info({
+          title: '警告',
+          content: `确定要删除索引 ${selectedRowKeys.value} 吗？`,
+          positiveText: '确定',
+          negativeText: '取消',
+          onPositiveClick: async () => {
+            await bulk_delete()
           }
-        }
-        // 提示删除了几个，失败了几个
-        message.success(`成功删除 ${success_count} 个索引`)
-        loading.value = false
-        await search()
+        })
       }
     }
   },
