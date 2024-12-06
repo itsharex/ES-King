@@ -519,3 +519,17 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 	}
 	return &types.ResultResp{Result: result}
 }
+
+func (es *ESService) BigModelSearch(content string) *types.ResultResp {
+
+	var result map[string]any
+
+	//给result赋值content内容
+	result = map[string]any{
+		"content": content,
+	}
+
+	//调用大模型接口
+
+	return &types.ResultResp{Result: result}
+}
