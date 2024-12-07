@@ -47,6 +47,10 @@
 ![](docs/snap/4.png)
 ![](docs/snap/5.png)
 
+# 捐赠
+有条件可以请作者喝杯咖啡，支持项目发展，感谢💕
+
+![image](https://github.com/user-attachments/assets/da6d46da-4e24-41e3-843d-495c6cd32065)
 
 
 
