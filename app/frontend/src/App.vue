@@ -66,6 +66,7 @@ import Rest from './components/Rest.vue'
 import Conn from './components/Conn.vue'
 import Task from './components/Task.vue'
 import Snapshot from './components/Snapshot.vue'
+import About from './components/About.vue'
 import {GetConfig, SaveTheme} from "../wailsjs/go/config/AppConfig";
 import {WindowSetSize} from "../wailsjs/runtime";
 import {renderIcon} from "./utils/common";
@@ -75,14 +76,13 @@ import {
   FavoriteTwotone,
   HiveOutlined,
   SettingsSuggestOutlined, TaskAltFilled,
-  ApiOutlined, LibraryBooksOutlined, AllOutOutlined, BarChartOutlined, AddAPhotoTwotone
+  ApiOutlined, LibraryBooksOutlined, AllOutOutlined, BarChartOutlined, AddAPhotoTwotone, InfoOutlined
 } from '@vicons/material'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
 
 
 let headerClass = shallowRef('lightTheme')
-const collapsed = ref(true)
 
 hljs.registerLanguage('json', json)
 
@@ -162,7 +162,12 @@ const sideMenuOptions = [
     icon: renderIcon(SettingsSuggestOutlined),
     component: Settings
   },
-
+  {
+    label: "关于",
+    key: "about",
+    icon: renderIcon(InfoOutlined),
+    component: About
+  },
 ]
 
 

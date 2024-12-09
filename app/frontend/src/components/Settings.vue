@@ -6,12 +6,7 @@
     </n-flex>
 
     <n-form :model="config" label-placement="top" style="text-align: left;">
-      <n-form-item label="项目主页">
-        <n-button @click="BrowserOpenURL(home_url)" :render-icon="renderIcon(HouseTwotone)">ES-King 项目主页</n-button>
-      </n-form-item>
-      <n-form-item label="同款 Kafka 客户端">
-        <n-button @click="BrowserOpenURL(kafka_home_url)" :render-icon="renderIcon(HouseTwotone)">推荐同款 KafKa</n-button>
-      </n-form-item>
+
       <n-form-item label="窗口宽度">
         <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
       </n-form-item>
@@ -51,15 +46,12 @@ import {
 import {WbSunnyOutlined, NightlightRoundFilled, RemoveOutlined, CloseFilled, HouseTwotone} from '@vicons/material'
 
 import {GetConfig, SaveConfig} from '../../wailsjs/go/config/AppConfig'
-import {BrowserOpenURL, WindowSetSize} from "../../wailsjs/runtime";
+import {WindowSetSize} from "../../wailsjs/runtime";
 import {renderIcon} from "../utils/common";
 import emitter from "../utils/eventBus";
 
 const message = useMessage()
 let theme = lightTheme
-const home_url = "https://github.com/Bronya0/ES-King"
-const kafka_home_url = "https://github.com/Bronya0/kafka-King"
-
 
 const config = ref({
   width: 1248,
