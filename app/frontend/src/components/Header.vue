@@ -18,7 +18,7 @@
     <template #extra>
       <n-flex justify="flex-end" style="--wails-draggable:no-drag" class="right-section">
         <n-button quaternary :focusable="false" @click="openUrl(qq_url)">交流群</n-button>
-        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>
+<!--        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>-->
         <n-button quaternary @click="openUrl(update_url)"
                   :render-icon="renderIcon(NearMeOutlined)"/>
         <n-tooltip placement="bottom" trigger="hover">
@@ -61,9 +61,9 @@ import {openUrl, renderIcon} from "../utils/common";
 import {GetConfig, GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
-defineProps(['options', 'value']);
+// defineProps(['options', 'value']);
 
-const MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
+// const MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
 const isMaximized = ref(false);
 const title_tag = ref("success");
 const check_msg = ref("");
@@ -73,7 +73,7 @@ const update_url = "https://github.com/Bronya0/ES-King/releases"
 const qq_url = "https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV2v&jump_from=webapi&authKey=Wle/K0ARM1YQWlpn6vvfiZuMedy2tT9BI73mUvXVvCuktvi0fNfmNR19Jhyrf2Nz"
 
 const update_loading = ref(false)
-let theme = lightTheme
+// let theme = lightTheme
 
 let version = ref({
   tag_name: "",
@@ -135,8 +135,8 @@ onMounted(async () => {
 
   app_name.value = await GetAppName()
 
-  const config = await GetConfig()
-  MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
+  // const config = await GetConfig()
+  // MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
   const v = await GetVersion()
   version.value.tag_name = v
   subtitle.value = v
@@ -174,11 +174,11 @@ const resizeWindow = () => {
 const closeWindow = () => {
   Quit()
 }
-const changeTheme = () => {
-  MoonOrSunnyOutline.value = MoonOrSunnyOutline.value === NightlightRoundFilled ? WbSunnyOutlined : NightlightRoundFilled;
-  theme = MoonOrSunnyOutline.value === NightlightRoundFilled ? darkTheme : lightTheme
-  emitter.emit('update_theme', theme)
-}
+// const changeTheme = () => {
+//   MoonOrSunnyOutline.value = MoonOrSunnyOutline.value === NightlightRoundFilled ? WbSunnyOutlined : NightlightRoundFilled;
+//   theme = MoonOrSunnyOutline.value === NightlightRoundFilled ? darkTheme : lightTheme
+//   emitter.emit('update_theme', theme)
+// }
 </script>
 
 <style scoped>

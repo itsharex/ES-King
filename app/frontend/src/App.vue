@@ -12,10 +12,7 @@
             <n-layout has-sider position="absolute" style="height: 100vh;" :class="headerClass">
               <!--header-->
               <n-layout-header bordered style="height: 42px; bottom: 0; padding: 0; ">
-                <Header
-                    :value="activeItem.label"
-                    :options="menuOptions"
-                />
+                <Header />
               </n-layout-header>
               <!--side + content-->
               <n-layout has-sider position="absolute" style="top: 42px; bottom: 0;">
@@ -28,7 +25,7 @@
                 >
                   <Aside
                       :collapsed-width="60"
-                      :value="activeItem.label"
+                      :value="activeItem.key"
                       :options="sideMenuOptions"
                   />
 
@@ -167,10 +164,6 @@ const sideMenuOptions = [
   },
 
 ]
-
-
-// 顶部菜单
-const menuOptions = []
 
 
 const activeItem = shallowRef(sideMenuOptions[0])
