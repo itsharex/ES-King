@@ -16,12 +16,8 @@
       <n-form-item label="语言">
         <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
       </n-form-item>
-
       <n-form-item label="主题">
-        <n-flex>
-          <n-button @click="theme=lightTheme" :render-icon="renderIcon(WbSunnyOutlined)"/>
-          <n-button @click="theme=darkTheme" :render-icon="renderIcon(NightlightRoundFilled)"/>
-        </n-flex>
+        <n-button circle :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>
       </n-form-item>
       <n-form-item>
         <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
@@ -32,7 +28,7 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from 'vue'
+import {onMounted, ref, shallowRef} from 'vue'
 import {
   darkTheme,
   lightTheme,
@@ -43,7 +39,7 @@ import {
   NSelect,
   useMessage,
 } from 'naive-ui'
-import {WbSunnyOutlined, NightlightRoundFilled, RemoveOutlined, CloseFilled, HouseTwotone} from '@vicons/material'
+import {WbSunnyOutlined, NightlightRoundFilled} from '@vicons/material'
 
 import {GetConfig, SaveConfig} from '../../wailsjs/go/config/AppConfig'
 import {WindowSetSize} from "../../wailsjs/runtime";
@@ -52,6 +48,8 @@ import emitter from "../utils/eventBus";
 
 const message = useMessage()
 let theme = lightTheme
+let MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
+
 
 const config = ref({
   width: 1248,
@@ -72,6 +70,8 @@ onMounted(async () => {
   console.log(loadedConfig)
   if (loadedConfig) {
     config.value = loadedConfig
+    MoonOrSunnyOutline.value = loadedConfig.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
+
   }
 })
 
@@ -92,5 +92,12 @@ const saveConfig = async () => {
   config.value = await GetConfig()
 
 }
+
+const changeTheme = () => {
+  MoonOrSunnyOutline.value = MoonOrSunnyOutline.value === NightlightRoundFilled ? WbSunnyOutlined : NightlightRoundFilled;
+  theme = MoonOrSunnyOutline.value === NightlightRoundFilled ? darkTheme : lightTheme
+  emitter.emit('update_theme', theme)
+}
+
 
 </script>
