@@ -83,6 +83,8 @@ import json from 'highlight.js/lib/languages/json'
 
 
 let headerClass = shallowRef('lightTheme')
+const activeItem = shallowRef(sideMenuOptions[0])
+let Theme = shallowRef(lightTheme)
 
 hljs.registerLanguage('json', json)
 
@@ -90,14 +92,12 @@ onMounted(async () => {
   // 从后端加载配置
   const loadedConfig = await GetConfig()
   if (loadedConfig) {
+    // 设置窗口大小
     await WindowSetSize(loadedConfig.width, loadedConfig.height)
-    if (loadedConfig.theme === 'light') {
-      Theme.value = lightTheme
-      headerClass = "lightTheme"
-    } else {
-      Theme.value = darkTheme
-      headerClass = "darkTheme"
-    }
+    // 设置主题
+    themeChange(loadedConfig.theme)
+    // 语言切换
+    // handleLanguageChange(loadedConfig.language)
   }
 
   // =====================注册事件监听=====================
@@ -106,6 +106,7 @@ onMounted(async () => {
   // 菜单切换
   emitter.on('menu_select', handleMenuSelect)
 })
+
 // 左侧菜单
 const sideMenuOptions = [
   {
@@ -170,34 +171,18 @@ const sideMenuOptions = [
   },
 ]
 
-
-const activeItem = shallowRef(sideMenuOptions[0])
-
 // 切换菜单
 function handleMenuSelect(key) {
   // 根据key寻找item
   activeItem.value = sideMenuOptions.find(item => item.key === key)
 }
 
-let Theme = shallowRef(lightTheme)
-
 // 主题切换
 function themeChange(newTheme) {
-  console.log(newTheme.name)
   Theme.value = newTheme
   headerClass = newTheme === lightTheme ? "lightTheme" : "darkTheme"
-  SaveTheme(newTheme.name)
 }
 
-// 自定义主题
-// /**
-//  * @type import('naive-ui').GlobalThemeOverrides
-//  */
-// const themeOverrides = {
-//   common: {
-//     bodyColor: '#FDFCFF'
-//   }
-// }
 
 </script>
 
