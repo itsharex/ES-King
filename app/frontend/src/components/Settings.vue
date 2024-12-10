@@ -21,7 +21,9 @@
       <n-form-item label="语言">
         <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
       </n-form-item>
-
+      <n-form-item label="百炼大模型key">
+        <n-input v-model:value="config.apikey"  :style="{ maxWidth: '120px' }"/>
+      </n-form-item>
       <n-form-item label="主题">
         <n-flex>
           <n-button @click="theme=lightTheme" :render-icon="renderIcon(WbSunnyOutlined)"/>
@@ -66,6 +68,7 @@ const config = ref({
   height: 768,
   language: 'zh-CN',
   theme: theme.name,
+  apikey : ''
 })
 const languageOptions = [
   {label: '中文', value: 'zh-CN'},

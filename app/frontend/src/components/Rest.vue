@@ -16,7 +16,7 @@
     </n-flex>
     <n-grid x-gap="20" :cols="2">
       <n-grid-item>
-        <div id="json_editor" class="editarea" @paste="toTree"></div>
+        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve" class="editarea" @paste="toTree"></div>
       </n-grid-item>
       <n-grid-item>
         <div id="json_view" class="editarea"></div>
@@ -166,6 +166,9 @@
               </n-button>
               <n-button @click="clearBigModelResponse">
                 清空
+              </n-button>
+              <n-button @click="autofill">
+                自动填充
               </n-button>
             </n-space>
           </n-space>
@@ -319,6 +322,36 @@ const sendBigModelQuery = async () => {
 
 const clearBigModelResponse = async () => {
   bigModelResponse.value = ''
+}
+
+const autofill = async () => {
+  try {
+    // 解析大模型返回的内容
+    const content = bigModelResponse.value;
+    
+    // 提取请求路径
+    const pathMatch = content.match(/请求路径:\s*([^\n]+)/);
+    if (pathMatch) {
+      path.value = pathMatch[1].trim();
+    }
+
+    // 提取请求方式 
+    const methodMatch = content.match(/请求方式:\s*([^\n]+)/);
+    if (methodMatch) {
+      method.value = methodMatch[1].trim();
+    }
+
+    // 提取请求体
+    const bodyMatch = content.match(/请求体:\s*([\s\S]+)$/);
+    if (bodyMatch) {
+      // 处理换行符,将\n替换为真实换行
+      const body = bodyMatch[1].trim().replace(/\\n/g, '\n');
+      editor.value.set(formatDSL(body));
+    }
+  } catch (e) {
+    message.error('解析失败:' + e);
+  }
+
 }
 
 const sendRequest = async () => {
