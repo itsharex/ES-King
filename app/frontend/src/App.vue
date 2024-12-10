@@ -81,10 +81,9 @@ import {
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
 
-
 let headerClass = shallowRef('lightTheme')
-const activeItem = shallowRef(sideMenuOptions[0])
 let Theme = shallowRef(lightTheme)
+
 
 hljs.registerLanguage('json', json)
 
@@ -95,7 +94,7 @@ onMounted(async () => {
     // 设置窗口大小
     await WindowSetSize(loadedConfig.width, loadedConfig.height)
     // 设置主题
-    themeChange(loadedConfig.theme)
+    themeChange(loadedConfig.theme === darkTheme.name ? darkTheme:lightTheme)
     // 语言切换
     // handleLanguageChange(loadedConfig.language)
   }
@@ -106,6 +105,7 @@ onMounted(async () => {
   // 菜单切换
   emitter.on('menu_select', handleMenuSelect)
 })
+
 
 // 左侧菜单
 const sideMenuOptions = [
@@ -170,6 +170,7 @@ const sideMenuOptions = [
     component: About
   },
 ]
+const activeItem = shallowRef(sideMenuOptions[0])
 
 // 切换菜单
 function handleMenuSelect(key) {
