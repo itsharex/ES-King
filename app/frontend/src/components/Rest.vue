@@ -114,7 +114,7 @@
             :item-count="filteredHistory.length"
         />
 
-          <n-list-item v-for="item in currentPageData" :key="item.timestamp" >
+          <n-list-item @click="handleHistoryClick(item.method, item.path, item.dsl)" v-for="item in currentPageData" :key="item.timestamp" >
               <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
                 <template #trigger>
                   <div style="display: flex;font-size: 14px; justify-content: space-between;">
@@ -234,7 +234,6 @@ const write_history = async () =>  {
     if (history.value.length > 100) {
       history.value = history.value.slice(0, 100)
     }
-    console.log(history.value)
     const res = await SaveHistory(history.value)
     if (res !== "") {
       message.error("保存查询失败：" + res)
@@ -244,13 +243,20 @@ const write_history = async () =>  {
   }
 }
 
+// 填充历史记录
+function handleHistoryClick(m, p, d) {
+  method.value = m
+  path.value = p
+  editor.value.setText(d)
+  showHistoryDrawer.value = false
+}
+
 function themeChange(newTheme) {
   const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/jsoneditor'
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
 
 }
-
 
 const formatDSL = (dsl) => {
   try {
@@ -259,6 +265,7 @@ const formatDSL = (dsl) => {
     return dsl
   }
 }
+
 const sendRequest = async () => {
   send_loading.value = true
   // 清空response
@@ -274,7 +281,7 @@ const sendRequest = async () => {
     } else {
       response.value.set(res.result)
       // 写入历史记录
-      write_history()
+      await write_history()
     }
   } catch (e) {
     message.error(e)
@@ -282,6 +289,7 @@ const sendRequest = async () => {
   send_loading.value = false
 
 }
+
 const toTree = () => {
   editor.value.format();
 }
@@ -318,6 +326,7 @@ const currentPageData = computed(() => {
   const end = start + pageSize.value
   return filteredHistory.value.slice(start, end)
 })
+
 const getMethodTagType = (method) => {
   const types = {
     'GET': 'success',
@@ -327,6 +336,7 @@ const getMethodTagType = (method) => {
   }
   return types[method] || 'default'
 }
+
 const dslExamples = {
   term: JSON.stringify({
     "query": {
