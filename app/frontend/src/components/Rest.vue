@@ -114,7 +114,7 @@
             :item-count="filteredHistory.length"
         />
 
-          <n-list-item @click="handleHistoryClick(item.method, item.path, item.dsl)" v-for="item in currentPageData" :key="item.timestamp" >
+          <n-list-item style="cursor: pointer;" @click="handleHistoryClick(item.method, item.path, item.dsl)" v-for="item in currentPageData" :key="item.timestamp" >
               <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
                 <template #trigger>
                   <div style="display: flex;font-size: 14px; justify-content: space-between;">
