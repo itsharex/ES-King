@@ -69,11 +69,11 @@
           </n-form-item>
 
           <n-form-item label="使用 SSL" path="useSSL">
-            <n-switch v-model:value="currentNode.useSSL"/>
+            <n-switch :round="false" v-model:value="currentNode.useSSL"/>
           </n-form-item>
 
-          <n-form-item label="跳过 SSL 验证" path="skipSSLVerify">
-            <n-switch value="true" v-model:value="currentNode.skipSSLVerify"/>
+          <n-form-item  label="跳过 SSL 验证" path="skipSSLVerify">
+            <n-switch :round="false" v-model:value="currentNode.skipSSLVerify"/>
           </n-form-item>
 
           <n-form-item label="CA 证书" path="caCert">
