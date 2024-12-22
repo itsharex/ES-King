@@ -139,7 +139,7 @@ onMounted(async () => {
   // MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
   const v = await GetVersion()
   version.value.tag_name = v
-  subtitle.value = v
+  subtitle.value = desc + " " + v
   await checkForUpdates()
 
 })
