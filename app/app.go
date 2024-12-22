@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"runtime"
+	"runtime/debug"
 )
 
 // App struct
@@ -30,14 +31,20 @@ func (a *App) domReady(ctx context.Context) {
 	// Add your action here
 
 	// 统计版本使用情况
-	client := resty.New().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
-	body := map[string]any{
-		"name":     "ES-King",
-		"version":  common.Version,
-		"platform": runtime.GOOS,
-	}
-	_, _ = client.R().SetBody(body).Post(common.PingUrl)
-
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Println(string(debug.Stack()))
+			}
+		}()
+		client := resty.New().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+		body := map[string]any{
+			"name":     common.AppName,
+			"version":  common.Version,
+			"platform": runtime.GOOS,
+		}
+		_, _ = client.R().SetBody(body).Post(common.PingUrl)
+	}()
 }
 
 // beforeClose is called when the application is about to quit,
