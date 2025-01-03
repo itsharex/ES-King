@@ -15,6 +15,7 @@ const (
 	ConfigDir   = ".es-king"
 	ConfigPath  = "config.yaml"
 	HistoryPath = "history.yaml"
+	ErrLogPath  = "error.log"
 	Language    = "zh-CN"
 	PingUrl     = "https://ysboke.cn/api/kingTool/ping"
 )
