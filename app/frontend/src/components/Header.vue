@@ -97,8 +97,8 @@ const checkForUpdates = async () => {
       check_msg.value = '发现新版本 ' + resp.tag_name
       version.value.body = resp.body
       const n = notification.success({
-        title: '发现新版本 ' + resp.tag_name,
-        description: resp.body,
+        title: '发现新版本: ' + resp.name,
+        // description: resp.body,
         action: () =>
             h(NFlex, {justify: "flex-end"}, () => [
               h(
@@ -139,7 +139,7 @@ onMounted(async () => {
   // MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
   const v = await GetVersion()
   version.value.tag_name = v
-  subtitle.value = v
+  subtitle.value = desc + " " + v
   await checkForUpdates()
 
 })
