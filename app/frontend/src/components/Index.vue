@@ -82,7 +82,7 @@
         <template #footer>
           <n-space justify="end">
             <n-button @click="CreateIndexDrawerVisible = false">取消</n-button>
-            <n-button type="primary" @click="addIndex">保存</n-button>
+            <n-button type="primary" @click="addIndex" :loading="addIndexLoading">保存</n-button>
           </n-space>
         </template>
       </n-drawer-content>
@@ -445,6 +445,7 @@ const clearCache = async (row) => {
 
   }
 }
+const addIndexLoading = ref(false)
 const addIndex = async () => {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
@@ -457,6 +458,7 @@ const addIndex = async () => {
         }
       }
 
+      addIndexLoading.value = true
       try {
         const res = await CreateIndex(indexConfig.value.name, indexConfig.value.numberOfShards, indexConfig.value.numberOfReplicas, indexConfig.value.mapping)
         if (res.err !== "") {
@@ -467,8 +469,10 @@ const addIndex = async () => {
         }
       } catch (e) {
         message.error(e)
+      } finally {
+        addIndexLoading.value = false
+        CreateIndexDrawerVisible.value = false
       }
-      CreateIndexDrawerVisible.value = false
     } else {
       message.error('请填写所有必填字段')
     }
