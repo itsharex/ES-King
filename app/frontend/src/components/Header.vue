@@ -34,10 +34,17 @@
     </template>
     <template #extra>
       <n-flex justify="flex-end" style="--wails-draggable:no-drag" class="right-section">
-        <n-button quaternary :focusable="false" @click="openUrl(qq_url)">交流群</n-button>
+        <n-button quaternary :focusable="false" @click="openUrl(qq_url)">交流群✨</n-button>
 <!--        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>-->
+
+        <n-tooltip placement="bottom" trigger="hover">
+          <template #trigger>
         <n-button quaternary @click="openUrl(update_url)"
-                  :render-icon="renderIcon(NearMeOutlined)"/>
+                  :render-icon="renderIcon(HouseTwotone)"/>
+          </template>
+          <span> 主页</span>
+        </n-tooltip>
+
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
             <n-button quaternary :focusable="false" :loading="update_loading" @click="checkForUpdates"
@@ -45,6 +52,7 @@
           </template>
           <span> 检查版本：{{ version.tag_name }} {{ check_msg }}</span>
         </n-tooltip>
+
         <n-button quaternary :focusable="false" @click="minimizeWindow" :render-icon="renderIcon(RemoveOutlined)"/>
         <n-button quaternary :focusable="false" @click="resizeWindow" :render-icon="renderIcon(MaxMinIcon)"/>
         <n-button quaternary style="font-size: 22px" :focusable="false" @click="closeWindow">
@@ -58,16 +66,13 @@
 </template>
 
 <script setup>
-import {darkTheme, lightTheme, NAvatar, NButton, NFlex, useMessage} from 'naive-ui'
+import {NAvatar, NButton, NFlex, useMessage} from 'naive-ui'
 import {
-  NearMeOutlined,
   SystemUpdateAltSharp,
   RemoveOutlined,
   CloseFilled,
   CropSquareFilled,
-  WbSunnyOutlined,
-  NightlightRoundFilled,
-  ContentCopyFilled
+  ContentCopyFilled, HouseTwotone
 } from '@vicons/material'
 import icon from '../assets/images/appicon.png'
 import {h, onMounted, ref, shallowRef} from "vue";
@@ -75,7 +80,7 @@ import {BrowserOpenURL, Quit, WindowMaximise, WindowMinimise, WindowUnmaximise} 
 import {CheckUpdate} from '../../wailsjs/go/system/Update'
 import {useNotification} from 'naive-ui'
 import {openUrl, renderIcon} from "../utils/common";
-import {GetConfig, GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
+import {GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
 // defineProps(['options', 'value']);

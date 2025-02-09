@@ -60,6 +60,7 @@
       </n-drawer-content>
     </n-drawer>
 
+<!--    添加index-->
     <n-drawer v-model:show="CreateIndexDrawerVisible" style="width: 38.2%">
       <n-drawer-content title="创建索引" style="text-align: left;">
         <n-form
@@ -105,12 +106,41 @@
       </n-drawer-content>
     </n-drawer>
 
+<!--    添加doc-->
+    <n-drawer v-model:show="addDocDrawerVisible" style="width: 38.2%">
+      <n-drawer-content title="添加文档" style="text-align: left;">
+        <n-form
+            :model="docConfig"
+            label-placement="top"
+            style="text-align: left;"
+            :rules="{
+              doc: {required: true, message: '请输入文档内容', trigger: 'blur'},
+            }"
+        >
+          <n-form-item label="文档内容" path="doc">
+            <n-input v-model:value="docConfig.doc" type="textarea" style="min-height: 300px; max-height: 800px;"
+                     placeholder='输入文档的json，例如
+{
+  "field1": "value1",
+  "field2": "value2"
+}'/>
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <n-space justify="end">
+            <n-button @click="addDocDrawerVisible = false">取消</n-button>
+            <n-button type="primary" @click="addDocumentFunc" :loading="addDocLoading">保存</n-button>
+          </n-space>
+        </template>
+      </n-drawer-content>
+    </n-drawer>
   </n-flex>
 </template>
+
 <script setup>
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
-import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage,  useDialog} from 'naive-ui'
+import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage, useDialog} from 'naive-ui'
 import {createCsvContent, download_file, formatBytes, formattedJson, isValidJson, renderIcon} from "../utils/common";
 import {
   AddFilled,
@@ -130,7 +160,8 @@ import {
   GetIndexInfo,
   MergeSegments,
   OpenCloseIndex,
-  Refresh
+  Refresh,
+  AddDocument
 } from "../../wailsjs/go/service/ESService";
 
 // 抽屉的可见性
@@ -183,7 +214,6 @@ const getData = async (value) => {
   if (res.err !== "") {
     message.error(res.err)
   } else {
-    console.log(res)
     data.value = res.results
   }
 
@@ -219,7 +249,12 @@ const columns = [
     type: "selection",
   },
   {
-    title: '索引名', key: 'index', sorter: 'default', width: 120, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
+    title: '索引名',
+    key: 'index',
+    sorter: 'default',
+    width: 120,
+    resizable: true,
+    ellipsis: {tooltip: {style: {maxWidth: '800px'},}},
     render: (row) => h(NText, {
           type: 'info',
           style: {cursor: 'pointer'},
@@ -228,7 +263,7 @@ const columns = [
         {default: () => row['index']}
     )
   },
-  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
+  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: {style: {maxWidth: '800px'},}}},
   {
     title: '健康',
     key: 'health',
@@ -282,6 +317,7 @@ const columns = [
     width: 60,
     render: (row) => {
       const options = [
+        {label: '添加文档', key: 'addDocument'},
         {label: '查看索引构成', key: 'viewDetails'},
         {label: '别名', key: 'viewAlias'},
         {label: '查看10条文档', key: 'viewDocs'},
@@ -316,6 +352,7 @@ const columns = [
 
 const handleMenuSelect = async (key, row) => {
   const func = {
+    "addDocument": addDocument,
     "viewDetails": viewIndexDetails,
     "viewAlias": viewIndexAlias,
     "viewDocs": viewIndexDocs,
@@ -336,6 +373,47 @@ const handleMenuSelect = async (key, row) => {
 }
 
 // 定义各种操作函数
+const addDocDrawerVisible = ref(false);
+const addDocLoading = ref(false);
+const docConfig = ref({
+  index: "",
+  doc: "",
+});
+
+const addDocument = async (row) => {
+  addDocDrawerVisible.value = true;
+  docConfig.value.index = row.index;
+}
+const addDocumentFunc = async () => {
+  if (!docConfig.value.doc){
+    message.error("请输入文档内容")
+    return
+  }
+  if (!isValidJson(docConfig.value.doc)){
+    message.error("文档内容不是合法的json")
+    return
+  }
+  addDocLoading.value = true;
+  try {
+    const res = await AddDocument(docConfig.value.index, docConfig.value.doc);
+    console.log(res);
+    if (res.err !== "") {
+      message.error(res.err);
+    } else {
+      message.success(`文档添加成功，id：` + res.result['_id']);
+      await search();
+    }
+  } catch (e) {
+    message.error(e);
+  } finally {
+    addDocLoading.value = false;
+    addDocDrawerVisible.value = false;
+    docConfig.value.index = "";
+    docConfig.value.doc = "";
+  }
+}
+
+
 const viewIndexDetails = async (row) => {
   const res = await GetIndexInfo(row.index)
   if (res.err !== "") {
@@ -481,7 +559,7 @@ const addIndex = async () => {
         if (res.err !== "") {
           message.error(res.err)
         } else {
-          message.success(`索引${indexConfig.value.name}创建成功`)
+          message.success(`索引【${indexConfig.value.name}】创建成功`)
           await search()
         }
       } catch (e) {

@@ -26,9 +26,9 @@
       <n-input v-model:value="path" placeholder="输入url path，以/开头" autosize
                style="min-width: 300px;text-align: left"/>
       <n-button @click="sendRequest" :loading="send_loading" :render-icon="renderIcon(SendSharp)">Send</n-button>
-      <n-button @click="exportJson" :render-icon="renderIcon(ArrowDownwardOutlined)">导出结果</n-button>
       <n-button @click="showDrawer = true" :render-icon="renderIcon(MenuBookTwotone)">ES查询示例</n-button>
       <n-button @click="showHistoryDrawer = true" :render-icon="renderIcon(HistoryOutlined)">历史记录</n-button>
+      <n-button @click="exportJson" :render-icon="renderIcon(ArrowDownwardOutlined)">导出结果</n-button>
     </n-flex>
     <n-grid x-gap="20" :cols="2">
       <n-grid-item>

@@ -31,7 +31,7 @@
         <n-button @click="BrowserOpenURL(kafka_home_url)" :render-icon="renderIcon(HouseTwotone)">KafKa-King</n-button>
       </n-form-item>
       <n-form-item label="技术交流群">
-        <n-button :focusable="false" @click="openUrl(qq_url)">QQ交流群</n-button>
+        <n-button :focusable="false" @click="openUrl(qq_url)">点我加群✨</n-button>
       </n-form-item>
 
     </n-form>

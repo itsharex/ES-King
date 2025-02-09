@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -33,6 +34,7 @@ import (
 const (
 	FORMAT          = "?format=json&pretty"
 	StatsApi        = "/_cluster/stats" + FORMAT
+	AddDoc          = "/_doc"
 	HealthApi       = "/_cluster/health"
 	NodesApi        = "/_cat/nodes?format=json&pretty&h=ip,name,heap.percent,heap.current,heap.max,ram.percent,ram.current,ram.max,node.role,master,cpu,load_5m,disk.used_percent,disk.used,disk.total,fielddataMemory,queryCacheMemory,requestCacheMemory,segmentsMemory,segments.count"
 	AllIndexApi     = "/_cat/indices?format=json&pretty&bytes=b"
@@ -108,10 +110,29 @@ func (es *ESService) TestClient(host, username, password, CACert string, UseSSL,
 	if err != nil {
 		return err.Error()
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return string(resp.Body())
 	}
 	return ""
+}
+
+// AddDocument 添加文档
+func (es *ESService) AddDocument(index, doc string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetBody(doc).
+		SetResult(&result).
+		Post(es.ConnectObj.Host + "/" + index + AddDoc)
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusCreated {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
 }
 
 func (es *ESService) GetNodes() *types.ResultsResp {
@@ -123,7 +144,7 @@ func (es *ESService) GetNodes() *types.ResultsResp {
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultsResp{Err: string(resp.Body())}
 	}
 	return &types.ResultsResp{Results: result}
@@ -138,7 +159,7 @@ func (es *ESService) GetHealth() *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -154,7 +175,7 @@ func (es *ESService) GetStats() *types.ResultResp {
 		return &types.ResultResp{Err: err.Error()}
 	}
 
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -175,7 +196,7 @@ func (es *ESService) GetIndexes(name string) *types.ResultsResp {
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultsResp{Err: string(resp.Body())}
 	}
 
@@ -208,7 +229,7 @@ func (es *ESService) CreateIndex(name string, numberOfShards, numberOfReplicas i
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{}
@@ -224,7 +245,7 @@ func (es *ESService) GetIndexInfo(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -240,7 +261,7 @@ func (es *ESService) DeleteIndex(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -260,7 +281,7 @@ func (es *ESService) OpenCloseIndex(indexName, now string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -277,7 +298,7 @@ func (es *ESService) GetIndexMappings(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -294,7 +315,7 @@ func (es *ESService) MergeSegments(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -311,7 +332,7 @@ func (es *ESService) Refresh(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -327,7 +348,7 @@ func (es *ESService) Flush(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -344,7 +365,7 @@ func (es *ESService) CacheClear(indexName string) *types.ResultResp {
 		return &types.ResultResp{Err: err.Error()}
 
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -374,7 +395,7 @@ func (es *ESService) GetDoc10(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -394,7 +415,7 @@ func (es *ESService) Search(method, path string, body any) *types.ResultResp {
 		return &types.ResultResp{Err: err.Error()}
 
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -410,7 +431,7 @@ func (es *ESService) GetClusterSettings() *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -426,7 +447,7 @@ func (es *ESService) GetIndexSettings(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -444,7 +465,7 @@ func (es *ESService) GetIndexAliases(indexNameList []string) *types.ResultResp {
 		return &types.ResultResp{Err: err.Error()}
 
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	alias := make(map[string]any)
@@ -472,7 +493,7 @@ func (es *ESService) GetIndexSegments(indexName string) *types.ResultResp {
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
@@ -488,7 +509,7 @@ func (es *ESService) GetTasks() *types.ResultsResp {
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultsResp{Err: string(resp.Body())}
 	}
 	nodes := result["nodes"].(map[string]any)
@@ -530,7 +551,7 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 		return &types.ResultResp{Err: err.Error()}
 
 	}
-	if resp.StatusCode() != 200 {
+	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
