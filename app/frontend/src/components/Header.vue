@@ -42,7 +42,7 @@
         <n-button quaternary @click="openUrl(update_url)"
                   :render-icon="renderIcon(HouseTwotone)"/>
           </template>
-          <span> 主页</span>
+          <span>主页</span>
         </n-tooltip>
 
         <n-tooltip placement="bottom" trigger="hover">
