@@ -35,7 +35,19 @@
       </n-form-item>
 
       <n-form-item label="主题">
-        <n-button circle :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>
+        <n-switch
+            :checked-value="darkTheme"
+            :unchecked-value="lightTheme"
+            v-model:value="theme"
+            @update-value="changeTheme"
+        >
+          <template #checked-icon>
+            <n-icon :component="NightlightRoundFilled" />
+          </template>
+          <template #unchecked-icon>
+            <n-icon :component="WbSunnyOutlined" />
+          </template>
+        </n-switch>
       </n-form-item>
       <n-form-item>
         <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
@@ -66,7 +78,6 @@ import emitter from "../utils/eventBus";
 
 const message = useMessage()
 let theme = lightTheme
-let MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
 
 
 const config = ref({
@@ -88,7 +99,7 @@ onMounted(async () => {
   console.log(loadedConfig)
   if (loadedConfig) {
     config.value = loadedConfig
-    MoonOrSunnyOutline.value = loadedConfig.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
+    theme = loadedConfig.theme === lightTheme.name ? lightTheme : darkTheme
 
   }
 })
@@ -112,8 +123,6 @@ const saveConfig = async () => {
 }
 
 const changeTheme = () => {
-  MoonOrSunnyOutline.value = MoonOrSunnyOutline.value === NightlightRoundFilled ? WbSunnyOutlined : NightlightRoundFilled;
-  theme = MoonOrSunnyOutline.value === NightlightRoundFilled ? darkTheme : lightTheme
   emitter.emit('update_theme', theme)
 }
 
