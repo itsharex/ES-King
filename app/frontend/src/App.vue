@@ -19,6 +19,7 @@
   <n-config-provider
       :theme="Theme"
       :hljs="hljs"
+      :locale="zhCN" :date-locale="dateZhCN"
   >
     <!--https://www.naiveui.com/zh-CN/os-theme/components/layout-->
     <n-message-provider container-style=" word-break: break-all;">
@@ -97,6 +98,7 @@ import {
 } from '@vicons/material'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
+import { zhCN, dateZhCN } from 'naive-ui'
 
 let headerClass = shallowRef('lightTheme')
 let Theme = shallowRef(lightTheme)
