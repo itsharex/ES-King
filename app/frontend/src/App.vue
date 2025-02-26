@@ -111,7 +111,7 @@ onMounted(async () => {
   const loadedConfig = await GetConfig()
   if (loadedConfig) {
     // 设置窗口大小
-    await WindowSetSize(loadedConfig.width, loadedConfig.height)
+    WindowSetSize(loadedConfig.width, loadedConfig.height)
     // 设置主题
     themeChange(loadedConfig.theme === darkTheme.name ? darkTheme:lightTheme)
     // 语言切换
