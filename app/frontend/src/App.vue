@@ -109,14 +109,10 @@ hljs.registerLanguage('json', json)
 onMounted(async () => {
   // 从后端加载配置
   const loadedConfig = await GetConfig()
-  if (loadedConfig) {
-    // 设置窗口大小
-    WindowSetSize(loadedConfig.width, loadedConfig.height)
-    // 设置主题
-    themeChange(loadedConfig.theme === darkTheme.name ? darkTheme:lightTheme)
-    // 语言切换
-    // handleLanguageChange(loadedConfig.language)
-  }
+  // 设置主题
+  themeChange(loadedConfig.theme === darkTheme.name ? darkTheme:lightTheme)
+  // 语言切换
+  // handleLanguageChange(loadedConfig.language)
 
   // =====================注册事件监听=====================
   // 主题切换
