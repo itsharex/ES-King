@@ -616,7 +616,6 @@ const queryAlias = async () => {
 const bulk_delete = async () => {
   loading.value = true
   let success_count = 0
-  console.log(selectedRowKeys.value)
   for (const Key in selectedRowKeys.value) {
     const res = await DeleteIndex(selectedRowKeys.value[Key])
     if (res.err !== "") {
@@ -626,6 +625,8 @@ const bulk_delete = async () => {
       success_count += 1
     }
   }
+  // 重置
+  selectedRowKeys.value = []
   // 提示删除了几个，失败了几个
   message.success(`成功删除 ${success_count} 个索引`)
   loading.value = false
