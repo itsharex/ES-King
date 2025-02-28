@@ -30,6 +30,9 @@
       <n-button @click="CreateIndexDrawerVisible = true" :render-icon="renderIcon(AddFilled)">添加索引</n-button>
       <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
       <n-button @click="queryAlias" :render-icon="renderIcon(AnnouncementOutlined)">读取别名</n-button>
+      <n-button @click="downloadIndexConfig.show = true" :render-icon="renderIcon(DriveFileMoveTwotone)" :loading="downloadIndexConfig.loading">
+        备份索引
+      </n-button>
 
     </n-flex>
 
@@ -53,6 +56,24 @@
       <n-text> 你选中了 {{ selectedRowKeys.length }} 行。</n-text>
     </n-flex>
 
+    <n-modal  v-model:show="downloadIndexConfig.show" style="width: 38.2%">
+      <n-card>
+        <n-flex vertical>
+          <n-flex vertical align="center">
+            <n-input v-model:value="downloadIndexConfig.indexName"/>
+            <n-input v-model:value="downloadIndexConfig.dsl"/>
+          </n-flex>
+          <n-flex  align="center">
+            <n-button @click="downloadIndexConfig.show = false">取消</n-button>
+            <n-button type="primary" @click="downloadIndex" :loading="downloadIndexConfig.loading">下载</n-button>
+          </n-flex>
+        </n-flex>
+      </n-card>
+      <template #header-extra>
+        备份索引
+      </template>
+    </n-modal>
+
 
     <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
       <n-drawer-content :title="drawer_title" style="text-align: left;">
@@ -60,7 +81,7 @@
       </n-drawer-content>
     </n-drawer>
 
-<!--    添加index-->
+    <!--    添加index-->
     <n-drawer v-model:show="CreateIndexDrawerVisible" style="width: 38.2%">
       <n-drawer-content title="创建索引" style="text-align: left;">
         <n-form
@@ -106,7 +127,7 @@
       </n-drawer-content>
     </n-drawer>
 
-<!--    添加doc-->
+    <!--    添加doc-->
     <n-drawer v-model:show="addDocDrawerVisible" style="width: 38.2%">
       <n-drawer-content title="添加文档" style="text-align: left;">
         <n-form
@@ -140,19 +161,15 @@
 <script setup>
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
-import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage, useDialog} from 'naive-ui'
+import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useDialog, useMessage} from 'naive-ui'
 import {createCsvContent, download_file, formatBytes, formattedJson, isValidJson, renderIcon} from "../utils/common";
+import {AddFilled, AnnouncementOutlined, DriveFileMoveTwotone, MoreVertFilled, SearchFilled} from "@vicons/material";
 import {
-  AddFilled,
-  AnnouncementOutlined,
-  DriveFileMoveTwotone,
-  MoreVertFilled,
-  SearchFilled
-} from "@vicons/material";
-import {
+  AddDocument,
   CacheClear,
   CreateIndex,
   DeleteIndex,
+  DownloadESIndex,
   Flush,
   GetDoc10,
   GetIndexAliases,
@@ -161,7 +178,6 @@ import {
   MergeSegments,
   OpenCloseIndex,
   Refresh,
-  AddDocument
 } from "../../wailsjs/go/service/ESService";
 
 // 抽屉的可见性
@@ -187,11 +203,46 @@ const selectedRowKeys = ref([]);
 const rowKey = (row) => row.index
 let aliases = {};
 
+
+const downloadIndexConfig = ref({
+  indexName: "",
+  dsl: "",
+  loading: false,
+  show: false,
+});
+
+const downloadIndex = async () => {
+
+  const indexName = downloadIndexConfig.value.indexName; // 或者从其他地方获取
+  const dsl = downloadIndexConfig.value.dsl; // 或者从其他地方获取
+
+  if (!indexName || !dsl) {
+    message.error("请填写索引名和 DSL");
+    return;
+  }
+
+  downloadIndexConfig.value.loading = true;
+  try {
+    const res = await DownloadESIndex(indexName, dsl, `/${indexName}-${Math.floor(Date.now() / 1000)}.json`);
+    if (res.err !== "") {
+      message.error(res.err);
+    } else {
+      message.success("备份成功");
+      CreateIndexDrawerVisible.value = false;
+    }
+  } catch (e) {
+    message.error(e);
+  } finally {
+    downloadIndexConfig.value.loading = false;
+  }
+};
+
 const selectNode = (node) => {
   data.value = []
   selectedRowKeys.value = []
   aliases = []
 }
+
 
 onMounted(async () => {
   emitter.on('selectNode', selectNode)
@@ -385,11 +436,11 @@ const addDocument = async (row) => {
   docConfig.value.index = row.index;
 }
 const addDocumentFunc = async () => {
-  if (!docConfig.value.doc){
+  if (!docConfig.value.doc) {
     message.error("请输入文档内容")
     return
   }
-  if (!isValidJson(docConfig.value.doc)){
+  if (!isValidJson(docConfig.value.doc)) {
     message.error("文档内容不是合法的json")
     return
   }

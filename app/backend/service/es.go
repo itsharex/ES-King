@@ -19,6 +19,7 @@ package service
 
 import (
 	"app/backend/types"
+	"bufio"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
@@ -27,6 +28,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -555,4 +557,112 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 		return &types.ResultResp{Err: string(resp.Body())}
 	}
 	return &types.ResultResp{Result: result}
+}
+
+// SearchResponse 定义 ES 搜索响应的结构
+type SearchResponse struct {
+	ScrollID string `json:"_scroll_id"`
+	Hits     struct {
+		Total int `json:"total"`
+		Hits  []struct {
+			Source json.RawMessage `json:"_source"`
+		} `json:"hits"`
+	} `json:"hits"`
+}
+
+// DownloadESIndex 使用 Resty 客户端从 ES 下载指定索引的数据
+func (es *ESService) DownloadESIndex(index string, queryDSL string, filePath string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+
+	res := &types.ResultResp{}
+	// 如果 queryDSL 为空，默认使用 match_all 查询
+	if queryDSL == "" {
+		queryDSL = `{"match_all": {}}`
+	}
+
+	// 创建本地文件
+	file, err := os.Create(filePath)
+	if err != nil {
+		res.Err = fmt.Sprintf("创建文件失败: %v", err)
+		return res
+	}
+	defer file.Close() // 确保文件在函数结束时关闭
+
+	// 构造初始搜索请求的 body，设置每批次大小为 10000
+	bodyStr := fmt.Sprintf(`{"size": 10000, "query": %s}`, queryDSL)
+	resp, err := es.Client.R().SetBody(bodyStr).Post("/" + index + "/_search?scroll=3m")
+	if err != nil {
+		res.Err = fmt.Sprintf("初始搜索请求失败: %v", err)
+		return res
+	}
+	if resp.StatusCode() != 200 {
+		res.Err = "初始搜索请求返回非 200 状态码"
+		return res
+	}
+
+	// 解析初始响应
+	var searchResponse SearchResponse
+	err = json.Unmarshal(resp.Body(), &searchResponse)
+	if err != nil {
+		res.Err = fmt.Sprintf("解析初始响应失败: %v", err)
+		return res
+	}
+
+	// 使用 bufio.Writer 进行缓冲写入
+	writer := bufio.NewWriter(file)
+	defer writer.Flush() // 确保缓冲区数据在函数结束时写入文件
+
+	// 写入 JSON 数组的开头
+	_, _ = writer.WriteString("[")
+
+	// 标志变量，用于控制逗号分隔符
+	isFirst := true
+
+	// 循环处理滚动下载
+	for {
+		// 如果当前批次没有文档，则退出循环
+		if len(searchResponse.Hits.Hits) == 0 {
+			break
+		}
+
+		// 遍历当前批次的每个文档
+		for _, hit := range searchResponse.Hits.Hits {
+			if !isFirst {
+				// 除了第一个文档前，其他文档前添加逗号
+				_, _ = writer.WriteString(",")
+			}
+			isFirst = false
+			// 直接写入文档的 _source 字段（json.RawMessage 是 []byte 类型）
+			_, _ = writer.Write(hit.Source)
+		}
+
+		// 发送滚动请求获取下一批数据
+		scrollBody := map[string]interface{}{
+			"scroll":    "3m", // 滚动上下文有效期 1 分钟
+			"scroll_id": searchResponse.ScrollID,
+		}
+		resp, err = es.Client.R().SetBody(scrollBody).Post("/_search/scroll")
+		if err != nil {
+			res.Err = fmt.Sprintf("滚动请求失败: %v", err)
+			return res
+		}
+		if resp.StatusCode() != 200 {
+			res.Err = fmt.Sprintf("滚动请求返回非 200 状态码 %v", resp.StatusCode())
+			return res
+		}
+
+		// 解析滚动响应
+		err = json.Unmarshal(resp.Body(), &searchResponse)
+		if err != nil {
+			res.Err = fmt.Sprintf("解析滚动响应失败: %v", err)
+			return res
+		}
+	}
+
+	// 写入 JSON 数组的结尾
+	_, _ = writer.WriteString("]")
+
+	return res
 }
