@@ -563,8 +563,10 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 type SearchResponse struct {
 	ScrollID string `json:"_scroll_id"`
 	Hits     struct {
-		Total int `json:"total"`
-		Hits  []struct {
+		Total struct {
+			Value int `json:"value"`
+		} `json:"total"`
+		Hits []struct {
 			Source json.RawMessage `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
@@ -592,7 +594,7 @@ func (es *ESService) DownloadESIndex(index string, queryDSL string, filePath str
 
 	// 构造初始搜索请求的 body，设置每批次大小为 10000
 	bodyStr := fmt.Sprintf(`{"size": 10000, "query": %s}`, queryDSL)
-	resp, err := es.Client.R().SetBody(bodyStr).Post("/" + index + "/_search?scroll=3m")
+	resp, err := es.Client.R().SetBody(bodyStr).Post(es.ConnectObj.Host + "/" + index + "/_search?scroll=3m")
 	if err != nil {
 		res.Err = fmt.Sprintf("初始搜索请求失败: %v", err)
 		return res
@@ -643,7 +645,7 @@ func (es *ESService) DownloadESIndex(index string, queryDSL string, filePath str
 			"scroll":    "3m", // 滚动上下文有效期 1 分钟
 			"scroll_id": searchResponse.ScrollID,
 		}
-		resp, err = es.Client.R().SetBody(scrollBody).Post("/_search/scroll")
+		resp, err = es.Client.R().SetBody(scrollBody).Post(es.ConnectObj.Host + "/_search/scroll")
 		if err != nil {
 			res.Err = fmt.Sprintf("滚动请求失败: %v", err)
 			return res

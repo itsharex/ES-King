@@ -30,7 +30,8 @@
       <n-button @click="CreateIndexDrawerVisible = true" :render-icon="renderIcon(AddFilled)">添加索引</n-button>
       <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
       <n-button @click="queryAlias" :render-icon="renderIcon(AnnouncementOutlined)">读取别名</n-button>
-      <n-button @click="downloadIndexConfig.show = true" :render-icon="renderIcon(DriveFileMoveTwotone)" :loading="downloadIndexConfig.loading">
+      <n-button @click="downloadIndexConfig.show = true" :render-icon="renderIcon(DriveFileMoveTwotone)"
+                :loading="downloadIndexConfig.loading">
         备份索引
       </n-button>
 
@@ -56,23 +57,20 @@
       <n-text> 你选中了 {{ selectedRowKeys.length }} 行。</n-text>
     </n-flex>
 
-    <n-modal  v-model:show="downloadIndexConfig.show" style="width: 38.2%">
-      <n-card>
+    <n-drawer v-model:show="downloadIndexConfig.show" style="width: 38.2%">
+      <n-drawer-content title="添加文档" style="text-align: left;">
         <n-flex vertical>
-          <n-flex vertical align="center">
-            <n-input v-model:value="downloadIndexConfig.indexName"/>
-            <n-input v-model:value="downloadIndexConfig.dsl"/>
-          </n-flex>
-          <n-flex  align="center">
+          输入要备份的索引名称
+          <n-input v-model:value="downloadIndexConfig.indexName"/>
+          输入查询dsl，不写默认查询所有
+          <n-input type="textarea" style="min-height: 300px; max-height: 800px;" v-model:value="downloadIndexConfig.dsl"/>
+          <n-flex align="center">
             <n-button @click="downloadIndexConfig.show = false">取消</n-button>
-            <n-button type="primary" @click="downloadIndex" :loading="downloadIndexConfig.loading">下载</n-button>
+            <n-button type="primary" @click="downloadIndex" :loading="downloadIndexConfig.loading">开始下载</n-button>
           </n-flex>
         </n-flex>
-      </n-card>
-      <template #header-extra>
-        备份索引
-      </template>
-    </n-modal>
+      </n-drawer-content>
+    </n-drawer>
 
 
     <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
@@ -216,10 +214,11 @@ const downloadIndex = async () => {
   const indexName = downloadIndexConfig.value.indexName; // 或者从其他地方获取
   const dsl = downloadIndexConfig.value.dsl; // 或者从其他地方获取
 
-  if (!indexName || !dsl) {
-    message.error("请填写索引名和 DSL");
+  if (!indexName) {
+    message.error("请填写索引名");
     return;
   }
+  message.info("开始下载，请不要退出...数据json将保存在根目录下");
 
   downloadIndexConfig.value.loading = true;
   try {
