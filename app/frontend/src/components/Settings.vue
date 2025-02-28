@@ -73,7 +73,6 @@ import {WbSunnyOutlined, NightlightRoundFilled} from '@vicons/material'
 
 import {GetConfig, SaveConfig} from '../../wailsjs/go/config/AppConfig'
 import {WindowSetSize} from "../../wailsjs/runtime";
-import {renderIcon} from "../utils/common";
 import emitter from "../utils/eventBus";
 
 const message = useMessage()

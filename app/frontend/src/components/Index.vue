@@ -32,7 +32,7 @@
       <n-button @click="queryAlias" :render-icon="renderIcon(AnnouncementOutlined)">读取别名</n-button>
       <n-button @click="downloadIndexConfig.show = true" :render-icon="renderIcon(DriveFileMoveTwotone)"
                 :loading="downloadIndexConfig.loading">
-        备份索引
+        索引备份（预览）
       </n-button>
 
     </n-flex>
@@ -58,16 +58,21 @@
     </n-flex>
 
     <n-drawer v-model:show="downloadIndexConfig.show" style="width: 38.2%">
-      <n-drawer-content title="添加文档" style="text-align: left;">
+      <n-drawer-content title="索引备份（预览）" style="text-align: left;">
         <n-flex vertical>
+          <n-p>【当前该功能还在测试中，使用请输入QQ群号，否则无法下载。如果遇到了bug，请反馈给群主。】</n-p>
           输入要备份的索引名称
           <n-input v-model:value="downloadIndexConfig.indexName"/>
           输入查询dsl，不写默认查询所有
-          <n-input type="textarea" style="min-height: 300px; max-height: 800px;" v-model:value="downloadIndexConfig.dsl"/>
+          <n-input type="textarea" style="min-height: 300px; max-height: 800px;"
+                   v-model:value="downloadIndexConfig.dsl"/>
+          测试码，也就是QQ群号，请在github上查看
+          <n-input v-model:value="downloadIndexConfig.code"/>
           <n-flex align="center">
             <n-button @click="downloadIndexConfig.show = false">取消</n-button>
             <n-button type="primary" @click="downloadIndex" :loading="downloadIndexConfig.loading">开始下载</n-button>
           </n-flex>
+          {{ downloadIndexConfig.msg }}
         </n-flex>
       </n-drawer-content>
     </n-drawer>
@@ -207,6 +212,8 @@ const downloadIndexConfig = ref({
   dsl: "",
   loading: false,
   show: false,
+  code: null,
+  msg: null,
 });
 
 const downloadIndex = async () => {
@@ -218,19 +225,28 @@ const downloadIndex = async () => {
     message.error("请填写索引名");
     return;
   }
-  message.info("开始下载，请不要退出...数据json将保存在根目录下");
+  if (downloadIndexConfig.value.code !== "964440643") {
+    message.error("群号错误，请在github上查看");
+    return;
+  }
+  const file_path = `/${indexName}-${Math.floor(Date.now() / 1000)}.json`
+  message.info("开始下载，请不要退出...数据json位置：" + file_path);
+  downloadIndexConfig.value.msg = "开始下载，请不要退出...数据json位置：" + file_path;
 
   downloadIndexConfig.value.loading = true;
   try {
-    const res = await DownloadESIndex(indexName, dsl, `/${indexName}-${Math.floor(Date.now() / 1000)}.json`);
+    const res = await DownloadESIndex(indexName, dsl, file_path);
     if (res.err !== "") {
       message.error(res.err);
+      downloadIndexConfig.value.msg = res.err;
     } else {
       message.success("备份成功");
+      downloadIndexConfig.value.msg = "备份成功";
       CreateIndexDrawerVisible.value = false;
     }
   } catch (e) {
     message.error(e);
+    downloadIndexConfig.value.msg = e;
   } finally {
     downloadIndexConfig.value.loading = false;
   }
