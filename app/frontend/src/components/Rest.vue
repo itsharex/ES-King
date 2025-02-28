@@ -19,7 +19,7 @@
   <n-flex vertical>
     <n-flex align="center">
       <h2 style="max-width: 200px;">REST</h2>
-      <n-text>一个 Restful 调试工具</n-text>
+      <n-text>一个 Restful 调试工具，支持格式化/DSL提示补全/示例/下载/历史缓存</n-text>
     </n-flex>
     <n-flex align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
@@ -166,6 +166,7 @@ import {formatTimestamp, renderIcon} from "../utils/common";
 import 'ace-builds/src-noconflict/theme-tomorrow_night';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'jsoneditor/src/js/ace/theme-jsoneditor';
+import ace from 'ace-builds';
 import {GetConfig, GetHistory, SaveHistory} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
@@ -192,6 +193,57 @@ const methodOptions = [
   {label: 'OPTIONS', value: 'OPTIONS'},
   {label: 'DELETE', value: 'DELETE'}
 ]
+// 自定义自动补全关键词
+const keywords = [
+  { word: 'query', meta: 'keyword' },           // 查询入口
+  { word: 'bool', meta: 'keyword' },            // 布尔查询
+  { word: 'filter', meta: 'keyword' },          // 过滤条件
+  { word: 'must', meta: 'keyword' },            // 必须匹配
+  { word: 'should', meta: 'keyword' },          // 应该匹配
+  { word: 'must_not', meta: 'keyword' },        // 必须不匹配
+  { word: 'term', meta: 'keyword' },            // 精确匹配查询
+  { word: 'terms', meta: 'keyword' },           // 多值精确匹配查询
+  { word: 'match', meta: 'keyword' },           // 全文匹配查询
+  { word: 'match_phrase', meta: 'keyword' },    // 短语匹配查询
+  { word: 'multi_match', meta: 'keyword' },     // 多字段匹配查询
+  { word: 'range', meta: 'keyword' },           // 范围查询
+  { word: 'exists', meta: 'keyword' },          // 检查字段是否存在
+  { word: 'prefix', meta: 'keyword' },          // 前缀查询
+  { word: 'wildcard', meta: 'keyword' },        // 通配符查询
+  { word: 'regexp', meta: 'keyword' },          // 正则表达式查询
+  { word: 'aggs', meta: 'keyword' },            // 聚合入口
+  { word: 'aggregations', meta: 'keyword' },    // 聚合入口（aggs 的完整形式）
+  { word: 'terms', meta: 'aggregation' },       // 聚合中的 terms（按字段分组）
+  { word: 'sum', meta: 'aggregation' },         // 求和聚合
+  { word: 'avg', meta: 'aggregation' },         // 平均值聚合
+  { word: 'min', meta: 'aggregation' },         // 最小值聚合
+  { word: 'max', meta: 'aggregation' },         // 最大值聚合
+  { word: 'stats', meta: 'aggregation' },       // 统计聚合
+  { word: 'cardinality', meta: 'aggregation' }, // 去重计数聚合
+  { word: 'histogram', meta: 'aggregation' },   // 直方图聚合
+  { word: 'date_histogram', meta: 'aggregation' }, // 日期直方图聚合
+  { word: 'top_hits', meta: 'aggregation' },    // 返回顶部命中文档
+  { word: 'size', meta: 'keyword' },            // 返回结果数量
+  { word: 'from', meta: 'keyword' },            // 分页起始位置
+  { word: 'sort', meta: 'keyword' },            // 排序
+  { word: 'track_total_hits', meta: 'keyword' }, // 跟踪总命中数
+  { word: '_source', meta: 'keyword' },         // 控制返回的字段
+  { word: 'fields', meta: 'keyword' },          // 指定返回字段
+  { word: 'script', meta: 'keyword' },          // 脚本字段
+  { word: 'gte', meta: 'range' },               // 大于等于（范围查询）
+  { word: 'lte', meta: 'range' },               // 小于等于（范围查询）
+  { word: 'gt', meta: 'range' },                // 大于（范围查询）
+  { word: 'lt', meta: 'range' },                // 小于（范围查询）
+  { word: 'boost', meta: 'keyword' },           // 提升权重
+  { word: 'minimum_should_match', meta: 'keyword' }, // should 最小匹配数
+  { word: 'nested', meta: 'keyword' },          // 嵌套对象查询
+  { word: 'path', meta: 'keyword' },            // 嵌套路径
+  { word: 'score_mode', meta: 'keyword' },      // 嵌套查询评分模式
+  { word: 'bucket', meta: 'aggregation' },      // 聚合桶
+  { word: 'order', meta: 'keyword' },           // 排序顺序
+  { word: 'asc', meta: 'sort' },                // 升序
+  { word: 'desc', meta: 'sort' }                // 降序
+];
 
 const selectNode = (node) => {
   response.value.setText('{"tip": "响应结果，支持搜索"}')
@@ -211,17 +263,42 @@ onMounted(async () => {
     }
     editor.value = new JSONEditor(document.getElementById('json_editor'), {
       mode: 'code',
+      ace:ace,
       theme: theme,
       mainMenuBar: false,
       statusBar: false,
     });
     response.value = new JSONEditor(document.getElementById('json_view'), {
       mode: 'code',
+      ace:ace,
       theme: theme,
       mainMenuBar: false,
       statusBar: false,
     });
     editor.value.setText(null)
+    editor.value.aceEditor.setOptions({
+      enableBasicAutocompletion: true,
+      enableLiveAutocompletion: true
+    })
+
+    // 自定义补全器
+    const customCompleter = {
+      getCompletions: (editor, session, pos, prefix, callback) => {
+        // 根据前缀过滤关键词
+        const suggestions = keywords
+            .filter(k => k.word.startsWith(prefix))
+            .map(k => ({
+              caption: k.word,
+              value: k.word,
+              meta: k.meta
+            }));
+        callback(null, suggestions);
+      }
+    };
+
+    // 添加自定义补全器
+    editor.value.aceEditor.completers = [customCompleter];
+
     response.value.setText('{"tip": "响应结果，支持搜索"}')
   }
   await read_history()
