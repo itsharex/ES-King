@@ -86,7 +86,6 @@ import Task from './components/Task.vue'
 import Snapshot from './components/Snapshot.vue'
 import About from './components/About.vue'
 import {GetConfig, SaveTheme} from "../wailsjs/go/config/AppConfig";
-import {WindowSetSize} from "../wailsjs/runtime";
 import {renderIcon} from "./utils/common";
 import Aside from "./components/Aside.vue";
 import emitter from "./utils/eventBus";
@@ -110,7 +109,7 @@ onMounted(async () => {
   // 从后端加载配置
   const loadedConfig = await GetConfig()
   // 设置主题
-  themeChange(loadedConfig.theme === darkTheme.name ? darkTheme:lightTheme)
+  themeChange(loadedConfig.theme)
   // 语言切换
   // handleLanguageChange(loadedConfig.language)
 
@@ -195,8 +194,8 @@ function handleMenuSelect(key) {
 
 // 主题切换
 function themeChange(newTheme) {
-  Theme.value = newTheme
-  headerClass = newTheme === lightTheme ? "lightTheme" : "darkTheme"
+  Theme.value = newTheme === lightTheme.name ? lightTheme : darkTheme
+  headerClass = newTheme === lightTheme.name ? "lightTheme" : "darkTheme"
 }
 
 
