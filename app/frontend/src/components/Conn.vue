@@ -143,8 +143,8 @@ const drawerTitle = computed(() => isEditing.value ? '编辑连接' : '添加连
 
 const formRef = ref(null)
 
-onMounted(async () => {
-  await refreshNodeList()
+onMounted( () => {
+  refreshNodeList()
 })
 
 const refreshNodeList = async () => {

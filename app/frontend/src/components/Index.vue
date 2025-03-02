@@ -259,7 +259,7 @@ const selectNode = (node) => {
 }
 
 
-onMounted(async () => {
+onMounted( () => {
   emitter.on('selectNode', selectNode)
 })
 

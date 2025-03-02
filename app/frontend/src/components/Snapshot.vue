@@ -19,7 +19,7 @@
 import {onMounted} from "vue";
 import emitter from "../utils/eventBus";
 
-onMounted(async () => {
+onMounted( () => {
   emitter.on('selectNode', selectNode)
 })
 
