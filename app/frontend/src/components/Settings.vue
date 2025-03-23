@@ -17,44 +17,52 @@
 
 <template>
   <!--  https://www.naiveui.com/zh-CN/os-theme/components/form  -->
-  <n-flex vertical justify="start">
-    <n-flex align="center">
-      <h2 style="max-width: 200px;">设置</h2>
-    </n-flex>
+  <n-grid :x-gap="12" :cols="2" style="padding: 16px 0">
+    <n-gi>
+      <n-flex vertical justify="start">
+        <h2 style="max-width: 200px;">设置</h2>
+        <n-form :model="config" label-placement="top" style="text-align: left;">
 
-    <n-form :model="config" label-placement="top" style="text-align: left;">
+          <n-form-item label="窗口宽度">
+            <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
+          </n-form-item>
+          <n-form-item label="窗口高度">
+            <n-input-number v-model:value="config.height" :min="600" :max="1080" :style="{ maxWidth: '120px' }"/>
+          </n-form-item>
+          <n-form-item label="语言">
+            <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
+          </n-form-item>
 
-      <n-form-item label="窗口宽度">
-        <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
-      </n-form-item>
-      <n-form-item label="窗口高度">
-        <n-input-number v-model:value="config.height" :min="600" :max="1080" :style="{ maxWidth: '120px' }"/>
-      </n-form-item>
-      <n-form-item label="语言">
-        <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
-      </n-form-item>
+          <n-form-item label="主题">
+            <n-switch
+                :checked-value="darkTheme.name"
+                :unchecked-value="lightTheme.name"
+                v-model:value="theme"
+                @update-value="changeTheme"
+            >
+              <template #checked-icon>
+                <n-icon :component="NightlightRoundFilled"/>
+              </template>
+              <template #unchecked-icon>
+                <n-icon :component="WbSunnyOutlined"/>
+              </template>
+            </n-switch>
+          </n-form-item>
+          <n-form-item>
+            <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
+          </n-form-item>
 
-      <n-form-item label="主题">
-        <n-switch
-            :checked-value="darkTheme.name"
-            :unchecked-value="lightTheme.name"
-            v-model:value="theme"
-            @update-value="changeTheme"
-        >
-          <template #checked-icon>
-            <n-icon :component="NightlightRoundFilled" />
-          </template>
-          <template #unchecked-icon>
-            <n-icon :component="WbSunnyOutlined" />
-          </template>
-        </n-switch>
-      </n-form-item>
-      <n-form-item>
-        <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
-      </n-form-item>
-
-    </n-form>
-  </n-flex>
+        </n-form>
+      </n-flex>
+    </n-gi>
+    <n-gi>
+      <n-flex vertical justify="start" style="text-align: left">
+        <h2>ProcessInfo</h2>
+        <n-p style="white-space: pre-wrap">{{ sys_info }}</n-p>
+        <n-button @click="getSysInfo()" style="width: 100px">刷新</n-button>
+      </n-flex>
+    </n-gi>
+  </n-grid>
 </template>
 
 <script setup>
@@ -72,11 +80,14 @@ import {
 import {WbSunnyOutlined, NightlightRoundFilled} from '@vicons/material'
 
 import {GetConfig, SaveConfig} from '../../wailsjs/go/config/AppConfig'
+import {GetProcessInfo} from '../../wailsjs/go/system/Update'
+
 import {WindowSetSize} from "../../wailsjs/runtime";
 import emitter from "../utils/eventBus";
 
 const message = useMessage()
 let theme = lightTheme.name
+const sys_info = ref("")
 
 
 const config = ref({
@@ -90,6 +101,10 @@ const languageOptions = [
   {label: 'English', value: 'en-US'}
 ]
 
+const getSysInfo = async () => {
+  sys_info.value = await GetProcessInfo()
+}
+
 onMounted(async () => {
   console.info("初始化settings……")
 
@@ -99,8 +114,9 @@ onMounted(async () => {
   if (loadedConfig) {
     config.value = loadedConfig
     theme = loadedConfig.theme
-
   }
+  await getSysInfo()
+
 })
 
 
