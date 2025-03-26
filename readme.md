@@ -26,7 +26,7 @@
 
 加群和作者一起交流： <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV2v&jump_from=webapi&authKey=Wle/K0ARM1YQWlpn6vvfiZuMedy2tT9BI73mUvXVvCuktvi0fNfmNR19Jhyrf2Nz">研发技术交流群：964440643</a>
 
-**同款已经开发好的Kafka客户端，已有数千人下载**：[Kafka-King](https://github.com/Bronya0/Kafka-King)
+**同款已经开发好的Kafka客户端，已有上万人下载**：[Kafka-King](https://github.com/Bronya0/Kafka-King)
 
 # 功能清单
 - 详尽的集群信息：节点信息、堆内存占用、总内存占用、cpu占用、磁盘占用、网络流量、节点角色、集群健康、5分钟负载、每个节点的字段缓存、段缓存、查询缓存、请求缓存、段总数指标
