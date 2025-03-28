@@ -55,11 +55,10 @@
 
 
 
-# 构建
-只有要研究源码才需要。
-安装wails，参考：https://wails.io/docs/gettingstarted/installation
+# 参与开发
+安装golang、node.js、npm，运行 go install github.com/wailsapp/wails/v2/cmd/wails@latest 安装 Wails CLI。
 ```
-cd app 
+cd app
 wails dev
 ```
 
