@@ -26,7 +26,7 @@
 
 加群和作者一起交流： <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV2v&jump_from=webapi&authKey=Wle/K0ARM1YQWlpn6vvfiZuMedy2tT9BI73mUvXVvCuktvi0fNfmNR19Jhyrf2Nz">研发技术交流群：964440643</a>
 
-**同款已经开发好的Kafka客户端，已有数千人下载**：[Kafka-King](https://github.com/Bronya0/Kafka-King)
+**同款已经开发好的Kafka客户端，已有上万人下载**：[Kafka-King](https://github.com/Bronya0/Kafka-King)
 
 # 功能清单
 - 详尽的集群信息：节点信息、堆内存占用、总内存占用、cpu占用、磁盘占用、网络流量、节点角色、集群健康、5分钟负载、每个节点的字段缓存、段缓存、查询缓存、请求缓存、段总数指标
@@ -35,7 +35,8 @@
 - 支持集群查看
 - 支持索引搜索、管理，导出csv
 - 支持索引操作：索引管理、抽样查看10条文档内容、索引别名、索引设置查看、索引刷新、索引段合并、删除索引、关闭or打开索引、flush索引、清理索引缓存……
-- 自带rest窗口（当然你喜欢也可以自己用postman），自动存储历史查询，一键恢复，查询结果支持搜索导出
+- 自带rest窗口（当然你喜欢也可以自己用postman），自动存储历史查询，一键恢复，查询结果支持搜索导出；支持es dsl的关键字悬浮提示
+- 支持索引备份下载到本地
 
 # 下载
 [下载地址](https://github.com/Bronya0/ES-King/releases)，点击【Assets】，选择自己办公电脑的平台下载，支持windows、macos、linux。
@@ -54,11 +55,10 @@
 
 
 
-# 构建
-只有要研究源码才需要。
-安装wails，参考：https://wails.io/docs/gettingstarted/installation
+# 参与开发
+安装golang、node.js、npm，运行 go install github.com/wailsapp/wails/v2/cmd/wails@latest 安装 Wails CLI。
 ```
-cd app 
+cd app
 wails dev
 ```
 
