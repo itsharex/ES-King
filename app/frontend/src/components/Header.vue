@@ -55,7 +55,7 @@
 
         <n-button quaternary :focusable="false" @click="minimizeWindow" :render-icon="renderIcon(RemoveOutlined)"/>
         <n-button quaternary :focusable="false" @click="resizeWindow" :render-icon="renderIcon(MaxMinIcon)"/>
-        <n-button quaternary style="font-size: 22px" :focusable="false" @click="closeWindow">
+        <n-button quaternary class="close-btn" style="font-size: 22px" :focusable="false" @click="closeWindow">
           <n-icon>
             <CloseFilled/>
           </n-icon>
@@ -204,7 +204,9 @@ const closeWindow = () => {
 </script>
 
 <style scoped>
-
+.close-btn:hover {
+  background-color: red;
+}
 
 .right-section .n-button {
   padding: 0 8px;
