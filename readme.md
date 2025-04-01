@@ -17,12 +17,13 @@
 
 </div>
 
-让ES更好用，make es great again!
+让ES更好用，make es great again! 
 
+该桌面软件用于操作、查询ES，适配各大桌面系统（除了win7），通信方式为REST API，一般无ES版本兼容问题。通过集成大量监控指标和优化过的便捷的查询界面，提升ES的使用体验和效率。
 
 如需提出需求、bug和改进建议，请提issue。
 
-点个star支持作者辛苦开源吧 谢谢❤❤
+点个star支持作者辛苦开源 谢谢❤❤
 
 加群和作者一起交流： <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV2v&jump_from=webapi&authKey=Wle/K0ARM1YQWlpn6vvfiZuMedy2tT9BI73mUvXVvCuktvi0fNfmNR19Jhyrf2Nz">研发技术交流群：964440643</a>
 
