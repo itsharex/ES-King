@@ -245,7 +245,7 @@ const downloadIndex = async () => {
       CreateIndexDrawerVisible.value = false;
     }
   } catch (e) {
-    message.error(e);
+    message.error(e.message);
     downloadIndexConfig.value.msg = e;
   } finally {
     downloadIndexConfig.value.loading = false;
@@ -268,7 +268,7 @@ const search = async () => {
   try {
     await getData(search_text.value)
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   loading.value = false
 
@@ -433,7 +433,7 @@ const handleMenuSelect = async (key, row) => {
   try {
     await func[key](row)
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   loading.value = false
 }
@@ -470,7 +470,7 @@ const addDocumentFunc = async () => {
       await search();
     }
   } catch (e) {
-    message.error(e);
+    message.error(e.message);
   } finally {
     addDocLoading.value = false;
     addDocDrawerVisible.value = false;
@@ -512,7 +512,7 @@ const viewIndexDocs = async (row) => {
       drawerVisible.value = true
     }
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   loading.value = false
 }
@@ -629,7 +629,7 @@ const addIndex = async () => {
           await search()
         }
       } catch (e) {
-        message.error(e)
+        message.error(e.message)
       } finally {
         addIndexLoading.value = false
         CreateIndexDrawerVisible.value = false
@@ -674,7 +674,7 @@ const queryAlias = async () => {
       }
     }
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   loading.value = false
 }

@@ -311,7 +311,7 @@ const read_history = async () => {
   try {
     history.value = await GetHistory()
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
 }
 const write_history = async () =>  {
@@ -333,7 +333,7 @@ const write_history = async () =>  {
       message.error("保存查询失败：" + res)
     }
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
 }
 
@@ -378,7 +378,7 @@ const sendRequest = async () => {
       await write_history()
     }
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   send_loading.value = false
 

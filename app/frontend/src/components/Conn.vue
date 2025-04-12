@@ -222,7 +222,7 @@ const test_connect = async () => {
           message.success('连接成功')
         }
       } catch (e) {
-        message.error(e)
+        message.error(e.message)
       }
       test_connect_loading.value = false
 
@@ -247,7 +247,7 @@ const selectNode = async (node) => {
       emitter.emit('selectNode', node)
     }
   } catch (e) {
-    message.error(e)
+    message.error(e.message)
   }
   spin_loading.value = false
 
