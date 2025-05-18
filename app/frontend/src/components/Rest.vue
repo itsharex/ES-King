@@ -34,7 +34,7 @@
     </n-flex>
     <n-grid x-gap="20" :cols="2">
       <n-grid-item>
-        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve" class="editarea"
+        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve; border: 0 !important;" class="editarea"
              @paste="toTree"></div>
       </n-grid-item>
       <n-grid-item>
@@ -169,8 +169,7 @@ import '../assets/css/jsoneditor.min.css'
 import {Search} from "../../wailsjs/go/service/ESService";
 import {ArrowDownwardOutlined, HistoryOutlined, MenuBookTwotone, SearchFilled, SendSharp} from "@vicons/material";
 import {formatTimestamp, renderIcon} from "../utils/common";
-import 'ace-builds/src-noconflict/theme-tomorrow_night';
-import 'ace-builds/src-noconflict/theme-monokai';
+import 'ace-builds/src-noconflict/theme-clouds_midnight'
 import 'jsoneditor/src/js/ace/theme-jsoneditor';
 import ace from 'ace-builds';
 import {GetConfig, GetHistory, SaveHistory} from "../../wailsjs/go/config/AppConfig";
@@ -267,7 +266,7 @@ onMounted(async () => {
   let theme = 'ace/theme/jsoneditor'
   if (loadedConfig) {
     if (loadedConfig.theme !== 'light') {
-      theme = 'ace/theme/monokai'
+      theme = 'ace/theme/clouds_midnight'
     }
     editor.value = new JSONEditor(document.getElementById('json_editor'), {
       mode: 'code',
@@ -320,7 +319,6 @@ onMounted(async () => {
 
 // =============== ace编辑器 =================
 import 'ace-builds/src-noconflict/mode-text'
-import 'ace-builds/src-noconflict/theme-monokai'
 import 'ace-builds/src-noconflict/ext-language_tools'
 
 const ace_editor = ref(null)
@@ -332,7 +330,7 @@ const initAce = (defaultValue) => {
 
   ace_editor.value = ace.edit(document.getElementById(ace_editorId), {
     mode: `ace/mode/text`,
-    theme: `ace/theme/monokai`,
+    theme: `ace/theme/clouds_midnight`,
     placeholder: defaultValue,
     fontSize: 14,
     enableBasicAutocompletion: true,
@@ -343,7 +341,6 @@ const initAce = (defaultValue) => {
     minLines: 1,
     showGutter: false,
   })
-  ace_editor.value?.focus()
 }
 
 const getAceValue = () => {
@@ -376,22 +373,28 @@ const setAceCompleter = (completions) => {
 // ================ ace编辑器 完结 =================
 
 const setAceIndex = async () => {
+  const keywords = [
+    '_search',  '_cluster',  '_cat',  '_indices',  '_nodes',  '_doc',  '?format=json&pretty',  '_forcemerge',  'wait_for_completion',  '_tasks',  '_cache',  '_flush',  '_refresh',  '_cancel',  '_mapping',  '_settings',  '_stats',  '_bulk',  '_update',  '_msearch',  '_alias',  '_rollover',  '_reindex',  '_snapshot'
+  ];
+  let completions = [];
+  for (let k of keywords) {
+    completions.push({ value: k });
+  }
+
   const res = await GetIndexes("")
   if (res.err !== "") {
     message.error("从ES中获取索引列表并初始化编辑器提示词失败：" + res.err)
   } else {
     if (res.results && res.results.length > 0) {
-      let completions = [];
       for (let i = 0; i < res.results.length; i++) {
         completions.push({
           value: res.results[i].index,
-          meta: 'index'
         })
       }
-      if (completions.length > 0) {
-        setAceCompleter(completions)
-      }
     }
+  }
+  if (completions.length > 0) {
+    setAceCompleter(completions)
   }
 }
 const read_history = async () => {
@@ -434,7 +437,7 @@ function handleHistoryClick(m, p, d) {
 }
 
 function themeChange(newTheme) {
-  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/jsoneditor'
+  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/clouds_midnight' : 'ace/theme/jsoneditor'
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
 
