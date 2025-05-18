@@ -150,7 +150,7 @@ onMounted( () => {
 const refreshNodeList = async () => {
   spin_loading.value = true
   const config = await GetConfig()
-  esNodes.value = config.connects
+  esNodes.value = config.connects.filter(node => node.name !== null && node.name !== "")
   spin_loading.value = false
 }
 
