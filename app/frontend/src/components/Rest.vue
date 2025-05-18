@@ -386,9 +386,9 @@ const setAceIndex = async () => {
     message.error("从ES中获取索引列表并初始化编辑器提示词失败：" + res.err)
   } else {
     if (res.results && res.results.length > 0) {
-      for (let i = 0; i < res.results.length; i++) {
+      for (let item of res.results) {
         completions.push({
-          value: res.results[i].index,
+          value: item.index,
         })
       }
     }
