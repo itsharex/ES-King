@@ -275,7 +275,7 @@ const search = async () => {
 }
 
 
-const cacheData = async (results) => {
+const cacheData = (results) => {
   // 缓存一下
   const key = 'es_king_indexes';
   let values = []
@@ -299,8 +299,8 @@ const getData = async (value) => {
     message.error(res.err)
   } else {
     data.value = res.results
+    cacheData(res.results)
   }
-
 }
 const pagination = ref({
   page: 1,
