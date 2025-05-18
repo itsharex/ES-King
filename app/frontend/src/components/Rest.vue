@@ -23,8 +23,10 @@
     </n-flex>
     <n-flex align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
-      <n-input v-model:value="path" placeholder="输入url path，以/开头" autosize
-               style="min-width: 300px;text-align: left"/>
+
+      <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 610px;text-align: left;
+        line-height: 34px;box-sizing: border-box;"/>
+
       <n-button @click="sendRequest" :loading="send_loading" :render-icon="renderIcon(SendSharp)">Send</n-button>
       <n-button @click="showDrawer = true" :render-icon="renderIcon(MenuBookTwotone)">ES查询示例</n-button>
       <n-button @click="showHistoryDrawer = true" :render-icon="renderIcon(HistoryOutlined)">历史记录</n-button>
@@ -32,7 +34,8 @@
     </n-flex>
     <n-grid x-gap="20" :cols="2">
       <n-grid-item>
-        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve" class="editarea" @paste="toTree"></div>
+        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve" class="editarea"
+             @paste="toTree"></div>
       </n-grid-item>
       <n-grid-item>
         <div id="json_view" class="editarea"></div>
@@ -119,7 +122,9 @@
           style="margin-bottom: 12px"
       >
         <template #prefix>
-          <n-icon><SearchFilled /></n-icon>
+          <n-icon>
+            <SearchFilled/>
+          </n-icon>
         </template>
       </n-input>
 
@@ -128,26 +133,27 @@
         <n-pagination
             v-model:page="currentPage"
             :page-size="pageSize"
-            :item-count="filteredHistory.length"
+            :item-count="filteredHistory?.length"
         />
 
-          <n-list-item style="cursor: pointer;" @click="handleHistoryClick(item.method, item.path, item.dsl)" v-for="item in currentPageData" :key="item.timestamp" >
-              <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
-                <template #trigger>
-                  <div style="display: flex;font-size: 14px; justify-content: space-between;">
-                    <n-tag :type="getMethodTagType(item.method)">
-                      {{ item.method }}
-                    </n-tag>
-                    <n-text>{{ item.path }}</n-text>
-                    <n-text depth="3">
-                      {{ formatTimestamp(item.timestamp) }}
-                    </n-text>
-                  </div>
-                </template>
-                 <n-code :code="formatDSL(item.dsl)" language="json" style="text-align: left;" v-if="item.dsl !== ''"/>
+        <n-list-item style="cursor: pointer;" @click="handleHistoryClick(item.method, item.path, item.dsl)"
+                     v-for="item in currentPageData" :key="item.timestamp">
+          <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
+            <template #trigger>
+              <div style="display: flex;font-size: 14px; justify-content: space-between;">
+                <n-tag :type="getMethodTagType(item.method)">
+                  {{ item.method }}
+                </n-tag>
+                <n-text>{{ item.path }}</n-text>
+                <n-text depth="3">
+                  {{ formatTimestamp(item.timestamp) }}
+                </n-text>
+              </div>
+            </template>
+            <n-code :code="formatDSL(item.dsl)" language="json" style="text-align: left;" v-if="item.dsl !== ''"/>
 
-              </n-tooltip>
-          </n-list-item>
+          </n-tooltip>
+        </n-list-item>
 
       </n-list>
     </n-drawer-content>
@@ -157,7 +163,7 @@
 <script setup>
 
 import {NButton, NGrid, NGridItem, NInput, NSelect, useMessage} from 'naive-ui'
-import {computed, onMounted, ref} from "vue";
+import {computed, nextTick, onMounted, ref} from "vue";
 import JSONEditor from 'jsoneditor';
 import '../assets/css/jsoneditor.min.css'
 import {Search} from "../../wailsjs/go/service/ESService";
@@ -169,10 +175,12 @@ import 'jsoneditor/src/js/ace/theme-jsoneditor';
 import ace from 'ace-builds';
 import {GetConfig, GetHistory, SaveHistory} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
+import {
+  GetIndexes,
+} from "../../wailsjs/go/service/ESService";
 
 const message = useMessage()
 const method = ref('GET')
-const path = ref('')
 const searchText = ref('')
 const history = ref([])
 const editor = ref();
@@ -195,54 +203,54 @@ const methodOptions = [
 ]
 // 自定义自动补全关键词
 const keywords = [
-  { word: 'query', meta: 'keyword' },           // 查询入口
-  { word: 'bool', meta: 'keyword' },            // 布尔查询
-  { word: 'filter', meta: 'keyword' },          // 过滤条件
-  { word: 'must', meta: 'keyword' },            // 必须匹配
-  { word: 'should', meta: 'keyword' },          // 应该匹配
-  { word: 'must_not', meta: 'keyword' },        // 必须不匹配
-  { word: 'term', meta: 'keyword' },            // 精确匹配查询
-  { word: 'terms', meta: 'keyword' },           // 多值精确匹配查询
-  { word: 'match', meta: 'keyword' },           // 全文匹配查询
-  { word: 'match_phrase', meta: 'keyword' },    // 短语匹配查询
-  { word: 'multi_match', meta: 'keyword' },     // 多字段匹配查询
-  { word: 'range', meta: 'keyword' },           // 范围查询
-  { word: 'exists', meta: 'keyword' },          // 检查字段是否存在
-  { word: 'prefix', meta: 'keyword' },          // 前缀查询
-  { word: 'wildcard', meta: 'keyword' },        // 通配符查询
-  { word: 'regexp', meta: 'keyword' },          // 正则表达式查询
-  { word: 'aggs', meta: 'keyword' },            // 聚合入口
-  { word: 'aggregations', meta: 'keyword' },    // 聚合入口（aggs 的完整形式）
-  { word: 'terms', meta: 'aggregation' },       // 聚合中的 terms（按字段分组）
-  { word: 'sum', meta: 'aggregation' },         // 求和聚合
-  { word: 'avg', meta: 'aggregation' },         // 平均值聚合
-  { word: 'min', meta: 'aggregation' },         // 最小值聚合
-  { word: 'max', meta: 'aggregation' },         // 最大值聚合
-  { word: 'stats', meta: 'aggregation' },       // 统计聚合
-  { word: 'cardinality', meta: 'aggregation' }, // 去重计数聚合
-  { word: 'histogram', meta: 'aggregation' },   // 直方图聚合
-  { word: 'date_histogram', meta: 'aggregation' }, // 日期直方图聚合
-  { word: 'top_hits', meta: 'aggregation' },    // 返回顶部命中文档
-  { word: 'size', meta: 'keyword' },            // 返回结果数量
-  { word: 'from', meta: 'keyword' },            // 分页起始位置
-  { word: 'sort', meta: 'keyword' },            // 排序
-  { word: 'track_total_hits', meta: 'keyword' }, // 跟踪总命中数
-  { word: '_source', meta: 'keyword' },         // 控制返回的字段
-  { word: 'fields', meta: 'keyword' },          // 指定返回字段
-  { word: 'script', meta: 'keyword' },          // 脚本字段
-  { word: 'gte', meta: 'range' },               // 大于等于（范围查询）
-  { word: 'lte', meta: 'range' },               // 小于等于（范围查询）
-  { word: 'gt', meta: 'range' },                // 大于（范围查询）
-  { word: 'lt', meta: 'range' },                // 小于（范围查询）
-  { word: 'boost', meta: 'keyword' },           // 提升权重
-  { word: 'minimum_should_match', meta: 'keyword' }, // should 最小匹配数
-  { word: 'nested', meta: 'keyword' },          // 嵌套对象查询
-  { word: 'path', meta: 'keyword' },            // 嵌套路径
-  { word: 'score_mode', meta: 'keyword' },      // 嵌套查询评分模式
-  { word: 'bucket', meta: 'aggregation' },      // 聚合桶
-  { word: 'order', meta: 'keyword' },           // 排序顺序
-  { word: 'asc', meta: 'sort' },                // 升序
-  { word: 'desc', meta: 'sort' }                // 降序
+  {word: 'query', meta: 'keyword'},           // 查询入口
+  {word: 'bool', meta: 'keyword'},            // 布尔查询
+  {word: 'filter', meta: 'keyword'},          // 过滤条件
+  {word: 'must', meta: 'keyword'},            // 必须匹配
+  {word: 'should', meta: 'keyword'},          // 应该匹配
+  {word: 'must_not', meta: 'keyword'},        // 必须不匹配
+  {word: 'term', meta: 'keyword'},            // 精确匹配查询
+  {word: 'terms', meta: 'keyword'},           // 多值精确匹配查询
+  {word: 'match', meta: 'keyword'},           // 全文匹配查询
+  {word: 'match_phrase', meta: 'keyword'},    // 短语匹配查询
+  {word: 'multi_match', meta: 'keyword'},     // 多字段匹配查询
+  {word: 'range', meta: 'keyword'},           // 范围查询
+  {word: 'exists', meta: 'keyword'},          // 检查字段是否存在
+  {word: 'prefix', meta: 'keyword'},          // 前缀查询
+  {word: 'wildcard', meta: 'keyword'},        // 通配符查询
+  {word: 'regexp', meta: 'keyword'},          // 正则表达式查询
+  {word: 'aggs', meta: 'keyword'},            // 聚合入口
+  {word: 'aggregations', meta: 'keyword'},    // 聚合入口（aggs 的完整形式）
+  {word: 'terms', meta: 'aggregation'},       // 聚合中的 terms（按字段分组）
+  {word: 'sum', meta: 'aggregation'},         // 求和聚合
+  {word: 'avg', meta: 'aggregation'},         // 平均值聚合
+  {word: 'min', meta: 'aggregation'},         // 最小值聚合
+  {word: 'max', meta: 'aggregation'},         // 最大值聚合
+  {word: 'stats', meta: 'aggregation'},       // 统计聚合
+  {word: 'cardinality', meta: 'aggregation'}, // 去重计数聚合
+  {word: 'histogram', meta: 'aggregation'},   // 直方图聚合
+  {word: 'date_histogram', meta: 'aggregation'}, // 日期直方图聚合
+  {word: 'top_hits', meta: 'aggregation'},    // 返回顶部命中文档
+  {word: 'size', meta: 'keyword'},            // 返回结果数量
+  {word: 'from', meta: 'keyword'},            // 分页起始位置
+  {word: 'sort', meta: 'keyword'},            // 排序
+  {word: 'track_total_hits', meta: 'keyword'}, // 跟踪总命中数
+  {word: '_source', meta: 'keyword'},         // 控制返回的字段
+  {word: 'fields', meta: 'keyword'},          // 指定返回字段
+  {word: 'script', meta: 'keyword'},          // 脚本字段
+  {word: 'gte', meta: 'range'},               // 大于等于（范围查询）
+  {word: 'lte', meta: 'range'},               // 小于等于（范围查询）
+  {word: 'gt', meta: 'range'},                // 大于（范围查询）
+  {word: 'lt', meta: 'range'},                // 小于（范围查询）
+  {word: 'boost', meta: 'keyword'},           // 提升权重
+  {word: 'minimum_should_match', meta: 'keyword'}, // should 最小匹配数
+  {word: 'nested', meta: 'keyword'},          // 嵌套对象查询
+  {word: 'path', meta: 'keyword'},            // 嵌套路径
+  {word: 'score_mode', meta: 'keyword'},      // 嵌套查询评分模式
+  {word: 'bucket', meta: 'aggregation'},      // 聚合桶
+  {word: 'order', meta: 'keyword'},           // 排序顺序
+  {word: 'asc', meta: 'sort'},                // 升序
+  {word: 'desc', meta: 'sort'}                // 降序
 ];
 
 const selectNode = (node) => {
@@ -303,9 +311,89 @@ onMounted(async () => {
   }
   await read_history()
 
+  await nextTick()
+  initAce("输入url path，以/开头")
+  await setAceIndex()
 
 });
 
+
+// =============== ace编辑器 =================
+import 'ace-builds/src-noconflict/mode-text'
+import 'ace-builds/src-noconflict/theme-monokai'
+import 'ace-builds/src-noconflict/ext-language_tools'
+
+const ace_editor = ref(null)
+const ace_editorId = "ace-editor"
+
+// 初始化 Ace 编辑器
+const initAce = (defaultValue) => {
+  ace.config.set('basePath', '/node_modules/ace-builds/src-noconflict')
+
+  ace_editor.value = ace.edit(document.getElementById(ace_editorId), {
+    mode: `ace/mode/text`,
+    theme: `ace/theme/monokai`,
+    placeholder: defaultValue,
+    fontSize: 14,
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true,
+    showLineNumbers: false,
+    maxLines: 1,
+    minLines: 1,
+    showGutter: false,
+  })
+  ace_editor.value?.focus()
+}
+
+const getAceValue = () => {
+  return ace_editor.value?.getValue()
+}
+
+const setAceValue = (newValue) => {
+  ace_editor.value?.setValue(newValue, -1)
+}
+
+// 定义提示词数据
+// const completions = [
+// {
+//   caption: "console.log", // 用户看到的名称（可选，如果和 value 相同可以省略）
+//   value: "console.log(${1:value})", // 实际插入的值
+//   score: 100, // 权重（越高越靠前）
+//   meta: "JavaScript" // 分类（如 "JavaScript"、"CSS"、"Custom"）
+// },
+// ];
+const setAceCompleter = (completions) => {
+  const customCompleter = {
+    getCompletions: function (editor, session, pos, prefix, callback) {
+      callback(null, completions); // 返回提示词
+    }
+  };
+  // 添加到编辑器的补全器列表
+  ace_editor.value.completers = [customCompleter] // 覆盖默认补全器（不推荐）
+  // ace_editor.value.completers.push(customCompleter); // 追加自定义补全器（推荐）
+}
+// ================ ace编辑器 完结 =================
+
+const setAceIndex = async () => {
+  const res = await GetIndexes("")
+  if (res.err !== "") {
+    message.error("从ES中获取索引列表并初始化编辑器提示词失败：" + res.err)
+  } else {
+    if (res.results && res.results.length > 0) {
+      let completions = [];
+      for (let i = 0; i < res.results.length; i++) {
+        completions.push({
+          value: res.results[i].index,
+          meta: 'index'
+        })
+      }
+      if (completions.length > 0) {
+        setAceCompleter(completions)
+      }
+    }
+  }
+}
 const read_history = async () => {
   console.log("read_history")
   try {
@@ -314,14 +402,14 @@ const read_history = async () => {
     message.error(e.message)
   }
 }
-const write_history = async () =>  {
+const write_history = async () => {
   console.log("write_history")
   try {
     // 从左侧插入history
     history.value.unshift({
       timestamp: Date.now(),
       method: method.value,
-      path: path.value,
+      path: getAceValue(),
       dsl: editor.value.getText()
     })
     // 只保留100条
@@ -340,7 +428,7 @@ const write_history = async () =>  {
 // 填充历史记录
 function handleHistoryClick(m, p, d) {
   method.value = m
-  path.value = p
+  setAceValue(p)
   editor.value.setText(d)
   showHistoryDrawer.value = false
 }
@@ -364,11 +452,12 @@ const sendRequest = async () => {
   send_loading.value = true
   // 清空response
   response.value.set({})
-  if (!path.value.startsWith('/')) {
-    path.value = '/' + path.value;
+  let path = getAceValue()
+  if (!path.startsWith('/')) {
+    setAceValue('/' + path);
   }
   try {
-    const res = await Search(method.value, path.value, editor.value.getText())
+    const res = await Search(method.value, path, editor.value.getText())
     // 返回不是200也写入结果框
     if (res.err !== "") {
       response.value.set(res.err)
@@ -403,9 +492,9 @@ function exportJson() {
 
 // 过滤和分页逻辑
 const filteredHistory = computed(() => {
-  if (!searchText.value){
+  if (!searchText.value) {
     return history.value
-  }else {
+  } else {
     return history.value.filter(item => {
       return item.method.includes(searchText.value) ||
           item.path.includes(searchText.value) ||
@@ -605,8 +694,13 @@ const dslExamples = {
 
 </script>
 
-<style scoped>
+<style>
 .editarea, .json_view {
   height: 72dvh;
+}
+
+/* 隐藏ace编辑器的脱离聚焦时携带的光标 */
+.ace_editor:not(.ace_focus) .ace_cursor {
+  opacity: 0 !important;
 }
 </style>
