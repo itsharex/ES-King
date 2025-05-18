@@ -289,7 +289,6 @@ const cacheData = (indexes) => {
     }
   }
   if (values){
-    console.log(values)
     localStorage.setItem(key, JSON.stringify(values.slice(-1000)))
   }
 }
