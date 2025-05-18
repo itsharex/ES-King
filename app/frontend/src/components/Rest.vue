@@ -361,7 +361,6 @@ const setAceValue = (newValue) => {
 // },
 // ];
 const setAceCompleter = (completions) => {
-  console.log(completions)
   const customCompleter = {
     getCompletions: function (editor, session, pos, prefix, callback) {
       callback(null, completions); // 返回提示词
