@@ -275,6 +275,24 @@ const search = async () => {
 }
 
 
+const cacheData = async (results) => {
+  // 缓存一下
+  const key = 'es_king_indexes';
+  let values = []
+  const stored = localStorage.getItem(key);
+  if (stored){
+    values = JSON.parse(stored)
+    for (let v of results) {
+      if (!values.includes(v)) {
+        values.push(v);
+      }
+    }
+  }
+  if (values){
+    localStorage.setItem(key, JSON.stringify(values.slice(-1000)))
+  }
+}
+
 const getData = async (value) => {
   const res = await GetIndexes(value)
   if (res.err !== "") {

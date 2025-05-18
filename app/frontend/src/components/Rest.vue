@@ -380,17 +380,14 @@ const setAceIndex = async () => {
   for (let k of keywords) {
     completions.push({ value: k });
   }
-
-  const res = await GetIndexes("")
-  if (res.err !== "") {
-    message.error("从ES中获取索引列表并初始化编辑器提示词失败：" + res.err)
-  } else {
-    if (res.results && res.results.length > 0) {
-      for (let item of res.results) {
-        completions.push({
-          value: item.index,
-        })
-      }
+  const key = 'es_king_indexes';
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    const values = JSON.parse(stored)
+    for (let v of values) {
+      completions.push({
+        value: v,
+      })
     }
   }
   if (completions.length > 0) {
