@@ -18,13 +18,13 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2 style="max-width: 200px;">REST</h2>
+      <h2>REST</h2>
       <n-text>一个 Restful 调试工具，支持格式化/DSL提示补全/示例/下载/历史缓存</n-text>
     </n-flex>
     <n-flex align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
 
-      <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 610px;text-align: left;
+      <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 40%;text-align: left;
         line-height: 34px;box-sizing: border-box;"/>
 
       <n-button @click="sendRequest" :loading="send_loading" :render-icon="renderIcon(SendSharp)">Send</n-button>
@@ -34,7 +34,8 @@
     </n-flex>
     <n-grid x-gap="20" :cols="2">
       <n-grid-item>
-        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve; border: 0 !important;" class="editarea"
+        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve; border: 0 !important;"
+             class="editarea"
              @paste="toTree"></div>
       </n-grid-item>
       <n-grid-item>
@@ -169,17 +170,15 @@ import '../assets/css/jsoneditor.min.css'
 import {Search} from "../../wailsjs/go/service/ESService";
 import {ArrowDownwardOutlined, HistoryOutlined, MenuBookTwotone, SearchFilled, SendSharp} from "@vicons/material";
 import {formatTimestamp, renderIcon} from "../utils/common";
-import 'ace-builds/src-noconflict/theme-clouds_midnight'
+import 'ace-builds/src-noconflict/theme-monokai'
 import 'jsoneditor/src/js/ace/theme-jsoneditor';
 import ace from 'ace-builds';
 import {GetConfig, GetHistory, SaveHistory} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
-import {
-  GetIndexes,
-} from "../../wailsjs/go/service/ESService";
+
 
 const message = useMessage()
-const method = ref('GET')
+const method = ref('POST')
 const searchText = ref('')
 const history = ref([])
 const editor = ref();
@@ -266,21 +265,24 @@ onMounted(async () => {
   let theme = 'ace/theme/jsoneditor'
   if (loadedConfig) {
     if (loadedConfig.theme !== 'light') {
-      theme = 'ace/theme/clouds_midnight'
+      theme = 'ace/theme/monokai'
     }
     editor.value = new JSONEditor(document.getElementById('json_editor'), {
       mode: 'code',
-      ace:ace,
+      ace: ace,
       theme: theme,
       mainMenuBar: false,
       statusBar: false,
+      showPrintMargin: false,
+      placeholder: '请求body'
     });
     response.value = new JSONEditor(document.getElementById('json_view'), {
       mode: 'code',
-      ace:ace,
+      ace: ace,
       theme: theme,
       mainMenuBar: false,
       statusBar: false,
+      showPrintMargin: false,
     });
     editor.value.setText(null)
     editor.value.aceEditor.setOptions({
@@ -311,7 +313,7 @@ onMounted(async () => {
   await read_history()
 
   await nextTick()
-  initAce("输入url path，以/开头")
+  initAce("输入url path，以/开头；查询请用POST请求")
   await setAceIndex()
 
 });
@@ -330,7 +332,7 @@ const initAce = (defaultValue) => {
 
   ace_editor.value = ace.edit(document.getElementById(ace_editorId), {
     mode: `ace/mode/text`,
-    theme: `ace/theme/clouds_midnight`,
+    theme: `ace/theme/monokai`,
     placeholder: defaultValue,
     fontSize: 14,
     enableBasicAutocompletion: true,
@@ -340,6 +342,7 @@ const initAce = (defaultValue) => {
     maxLines: 1,
     minLines: 1,
     showGutter: false,
+    showPrintMargin: false,
   })
 }
 
@@ -374,11 +377,11 @@ const setAceCompleter = (completions) => {
 
 const setAceIndex = async () => {
   const keywords = [
-    '_search',  '_cluster',  '_cat',  '_indices',  '_nodes',  '_doc',  '?format=json&pretty',  '_forcemerge',  'wait_for_completion',  '_tasks',  '_cache',  '_flush',  '_refresh',  '_cancel',  '_mapping',  '_settings',  '_stats',  '_bulk',  '_update',  '_msearch',  '_alias',  '_rollover',  '_reindex',  '_snapshot'
+    '_search', '_cluster', '_cat', '_indices', '_nodes', '_doc', '?format=json&pretty', '_forcemerge', 'wait_for_completion', '_tasks', '_cache', '_flush', '_refresh', '_cancel', '_mapping', '_settings', '_stats', '_bulk', '_update', '_msearch', '_alias', '_rollover', '_reindex', '_snapshot'
   ];
   let completions = [];
   for (let k of keywords) {
-    completions.push({ value: k });
+    completions.push({value: k});
   }
   const key = 'es_king_indexes';
   const stored = localStorage.getItem(key);
@@ -434,7 +437,7 @@ function handleHistoryClick(m, p, d) {
 }
 
 function themeChange(newTheme) {
-  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/clouds_midnight' : 'ace/theme/jsoneditor'
+  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/jsoneditor'
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
 
@@ -702,5 +705,11 @@ const dslExamples = {
 /* 隐藏ace编辑器的脱离聚焦时携带的光标 */
 .ace_editor:not(.ace_focus) .ace_cursor {
   opacity: 0 !important;
+}
+
+/* 使主题支持placeholder */
+.ace_editor .ace_placeholder {
+  position: absolute;
+  z-index: 10;
 }
 </style>

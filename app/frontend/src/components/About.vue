@@ -18,7 +18,7 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2 style="max-width: 200px;">关于</h2>
+      <h2>关于</h2>
     </n-flex>
   </n-flex >
   <n-flex align="center">

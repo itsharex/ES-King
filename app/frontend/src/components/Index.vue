@@ -19,7 +19,7 @@
   <n-flex vertical>
 
     <n-flex align="center">
-      <h2 style="max-width: 200px;">索引</h2>
+      <h2>索引</h2>
       <n-text>共计{{ data.length }}个</n-text>
     </n-flex>
     <n-flex align="center">

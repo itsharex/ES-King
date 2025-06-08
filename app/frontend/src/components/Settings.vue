@@ -17,52 +17,49 @@
 
 <template>
   <!--  https://www.naiveui.com/zh-CN/os-theme/components/form  -->
-  <n-grid :x-gap="12" :cols="2" style="padding: 16px 0">
-    <n-gi>
-      <n-flex vertical justify="start">
-        <h2 style="max-width: 200px;">设置</h2>
-        <n-form :model="config" label-placement="top" style="text-align: left;">
+  <n-flex vertical justify="start">
+    <h2>设置</h2>
+    <n-form :model="config" label-placement="top" style="text-align: left;">
 
-          <n-form-item label="窗口宽度">
-            <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
-          </n-form-item>
-          <n-form-item label="窗口高度">
-            <n-input-number v-model:value="config.height" :min="600" :max="1080" :style="{ maxWidth: '120px' }"/>
-          </n-form-item>
-          <n-form-item label="语言">
-            <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
-          </n-form-item>
+      <n-form-item label="窗口宽度">
+        <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
+      </n-form-item>
+      <n-form-item label="窗口高度">
+        <n-input-number v-model:value="config.height" :min="600" :max="1080" :style="{ maxWidth: '120px' }"/>
+      </n-form-item>
+      <n-form-item label="语言">
+        <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
+      </n-form-item>
 
-          <n-form-item label="主题">
-            <n-switch
-                :checked-value="darkTheme.name"
-                :unchecked-value="lightTheme.name"
-                v-model:value="theme"
-                @update-value="changeTheme"
-            >
-              <template #checked-icon>
-                <n-icon :component="NightlightRoundFilled"/>
-              </template>
-              <template #unchecked-icon>
-                <n-icon :component="WbSunnyOutlined"/>
-              </template>
-            </n-switch>
-          </n-form-item>
-          <n-form-item>
-            <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
-          </n-form-item>
+      <n-form-item label="主题">
+        <n-switch
+            :checked-value="darkTheme.name"
+            :unchecked-value="lightTheme.name"
+            v-model:value="theme"
+            @update-value="changeTheme"
+        >
+          <template #checked-icon>
+            <n-icon :component="NightlightRoundFilled"/>
+          </template>
+          <template #unchecked-icon>
+            <n-icon :component="WbSunnyOutlined"/>
+          </template>
+        </n-switch>
+      </n-form-item>
+      <n-form-item>
+        <n-flex>
+          <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
+          <n-tooltip>
+            <template #trigger>
+              <n-button @click="getSysInfo()" style="width: 100px">ProcessInfo</n-button>
+            </template>
+            <n-p style="white-space: pre-wrap; max-height: 400px; overflow: auto; text-align: left">{{ sys_info }}</n-p>
+          </n-tooltip>
+        </n-flex>
+      </n-form-item>
 
-        </n-form>
-      </n-flex>
-    </n-gi>
-    <n-gi>
-      <n-flex vertical justify="start" style="text-align: left">
-        <h2>ProcessInfo</h2>
-        <n-p style="white-space: pre-wrap">{{ sys_info }}</n-p>
-        <n-button @click="getSysInfo()" style="width: 100px">刷新</n-button>
-      </n-flex>
-    </n-gi>
-  </n-grid>
+    </n-form>
+  </n-flex>
 </template>
 
 <script setup>

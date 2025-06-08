@@ -18,7 +18,7 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2 style="max-width: 200px;">健康</h2>
+      <h2>健康</h2>
       <n-button @click="getData" text :render-icon="renderIcon(RefreshOutlined)">refresh</n-button>
 
     </n-flex>
