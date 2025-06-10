@@ -313,7 +313,7 @@ onMounted(async () => {
   await read_history()
 
   await nextTick()
-  initAce("输入url path，以/开头；查询请用POST请求")
+  initAce("输入rest api，以/开头；查询请用POST请求；GET不会携带body")
   await setAceIndex()
 
 });
@@ -377,7 +377,49 @@ const setAceCompleter = (completions) => {
 
 const setAceIndex = async () => {
   const keywords = [
-    '_search', '_cluster', '_cat', '_indices', '_nodes', '_doc', '?format=json&pretty', '_forcemerge', 'wait_for_completion', '_tasks', '_cache', '_flush', '_refresh', '_cancel', '_mapping', '_settings', '_stats', '_bulk', '_update', '_msearch', '_alias', '_rollover', '_reindex', '_snapshot'
+    '_search',         // 搜索API
+    '_cluster',        // 集群API
+    '_cat',            // Cat API
+    '_nodes',          // 节点信息
+    '_doc',            // 文档操作
+    '_tasks',          // 任务管理
+    '_flush',          // 刷新索引
+    '_refresh',        // 刷新索引数据
+    '_mapping',        // 获取/设置映射
+    '_settings',       // 索引设置
+    '_stats',          // 统计信息
+    '_bulk',           // 批量操作
+    '_update',         // 更新文档
+    '_msearch',        // 多搜索
+    '_alias',          // 别名操作
+    '_rollover',       // 滚动索引
+    '_reindex',        // 重新索引
+    '_snapshot',       // 快照操作
+    '_forcemerge',     // 强制合并段
+    '_indices',        // 索引操作（补充）
+    '_count',          // 计数API（补充）
+    '_validate',       // 查询验证（补充）
+    '_explain',        // 解释查询（补充）
+    '_field_caps',     // 字段能力（补充）
+    '_search_shards',  // 搜索分片信息（补充）
+    '_analyze',        // 分析文本（补充）
+    'pretty',                   // 美化输出
+    'human',                    // 人类可读格式
+    'master_timeout',           // 主节点超时
+    'ignore_unavailable',       // 忽略不可用索引
+    'allow_no_indices',         // 允许无索引
+    'expand_wildcards',         // 通配符扩展
+    'wait_for_active_shards',   // 等待活跃分片
+    'wait_for_completion',      // 等待操作完成
+    'format=json',              // 指定返回格式（通常是单独使用）
+    'size',                    // 返回文档数（补充）
+    'from',                    // 分页起始（补充）
+    'q',                       // 查询字符串（补充）
+    'scroll',                  // 滚动查询（补充）
+    'routing',                 // 路由值（补充）
+    'preference',              // 查询偏好（补充）
+    'timeout',                 // 超时时间（补充）
+    'filter_path',             // 过滤返回字段（补充）
   ];
   let completions = [];
   for (let k of keywords) {
