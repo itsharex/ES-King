@@ -310,17 +310,20 @@ const getData = async (value) => {
     cacheData(res.results.map(item => item.index))
   }
 }
+
+const pageKey = 'esKing:index:pageKey'
 const pagination = ref({
   page: 1,
-  pageSize: 10,
+  pageSize: localStorage.getItem(pageKey) || 10,
   showSizePicker: true,
-  pageSizes: [5, 10, 20, 30, 40],
+  pageSizes: [5, 10, 15, 20, 25, 30, 40],
   onChange: (page) => {
     pagination.value.page = page
   },
   onUpdatePageSize: (pageSize) => {
     pagination.value.pageSize = pageSize
     pagination.value.page = 1
+    localStorage.setItem(pageKey, pageSize.toString())
   },
   itemCount: data.value.length
 })
@@ -343,7 +346,6 @@ const columns = [
   {
     title: '索引名',
     key: 'index',
-
     width: 200,
     render: (row) => h(NText, {
           type: 'info',
@@ -357,7 +359,6 @@ const columns = [
   {
     title: '健康',
     key: 'health',
-
     render: (row) => h(NTag, {type: getType(row['health'])}, {default: () => row['health']}),
   },
   {
@@ -376,7 +377,6 @@ const columns = [
   {
     title: '文档总数',
     key: 'docs.count',
-
   },
   {
     title: '软删除文档',
