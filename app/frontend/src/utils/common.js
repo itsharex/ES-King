@@ -162,6 +162,7 @@ export function refColumns(columns) {
         if (!('ellipsis' in processed)) {
             processed.ellipsis = {
                 tooltip: {
+                    scrollable: true,
                     style: { maxWidth: '800px' } // 自定义提示框最大宽度
                 }
             };
