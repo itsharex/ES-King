@@ -23,10 +23,10 @@
     <template #subtitle>
       <n-tooltip>
         <template #trigger>
-          <n-tag :type=title_tag v-if="subtitle">{{subtitle}}</n-tag>
-          <n-p v-else>{{desc}}</n-p>
+          <n-tag v-if="subtitle" :type=title_tag>{{ subtitle }}</n-tag>
+          <n-p v-else>{{ desc }}</n-p>
         </template>
-        健康：{{title_tag}}
+        健康：{{ title_tag }}
       </n-tooltip>
     </template>
     <template #title>
@@ -35,12 +35,12 @@
     <template #extra>
       <n-flex justify="flex-end" style="--wails-draggable:no-drag" class="right-section">
         <n-button quaternary :focusable="false" @click="openUrl(qq_url)">技术交流群</n-button>
-<!--        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>-->
+        <!--        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>-->
 
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
-        <n-button quaternary @click="openUrl(update_url)"
-                  :render-icon="renderIcon(HouseTwotone)"/>
+            <n-button :render-icon="renderIcon(HouseTwotone)" quaternary
+                      @click="openUrl(update_url)"/>
           </template>
           <span>主页</span>
         </n-tooltip>

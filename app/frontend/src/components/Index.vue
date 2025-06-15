@@ -23,15 +23,15 @@
       <n-text>共计{{ data.length }}个</n-text>
     </n-flex>
     <n-flex align="center">
-      <n-input @keydown.enter="search" v-model:value="search_text" autosize style="min-width: 20%"
-               placeholder="模糊搜索索引"/>
+      <n-input v-model:value="search_text" autosize placeholder="模糊搜索索引" style="min-width: 20%"
+               @keydown.enter="search"/>
 
-      <n-button @click="search" :render-icon="renderIcon(SearchFilled)"></n-button>
-      <n-button @click="CreateIndexDrawerVisible = true" :render-icon="renderIcon(AddFilled)">添加索引</n-button>
-      <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
-      <n-button @click="queryAlias" :render-icon="renderIcon(AnnouncementOutlined)">读取别名</n-button>
-      <n-button @click="downloadIndexConfig.show = true" :render-icon="renderIcon(DriveFileMoveTwotone)"
-                :loading="downloadIndexConfig.loading">
+      <n-button :render-icon="renderIcon(SearchFilled)" @click="search"></n-button>
+      <n-button :render-icon="renderIcon(AddFilled)" @click="CreateIndexDrawerVisible = true">添加索引</n-button>
+      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
+      <n-button :render-icon="renderIcon(AnnouncementOutlined)" @click="queryAlias">读取别名</n-button>
+      <n-button :loading="downloadIndexConfig.loading" :render-icon="renderIcon(DriveFileMoveTwotone)"
+                @click="downloadIndexConfig.show = true">
         索引备份（预览）
       </n-button>
 
@@ -40,14 +40,14 @@
     <n-spin :show="loading" description="Connecting...">
       <n-data-table
           ref="tableRef"
-          :columns="columns"
+          v-model:checked-row-keys="selectedRowKeys"
+          :bordered="false"
+          :columns="refColumns(columns)"
           :data="data"
           :pagination="pagination"
-          size="small"
-          :bordered="false"
-          striped
           :row-key="rowKey"
-          v-model:checked-row-keys="selectedRowKeys"
+          size="small"
+          striped
       />
     </n-spin>
     <n-flex align="center">
@@ -58,19 +58,19 @@
     </n-flex>
 
     <n-drawer v-model:show="downloadIndexConfig.show" style="width: 38.2%">
-      <n-drawer-content title="索引备份（预览）" style="text-align: left;">
+      <n-drawer-content style="text-align: left;" title="索引备份（预览）">
         <n-flex vertical>
           <n-p>【当前该功能还在测试中，使用请输入QQ群号，否则无法下载。如果遇到了bug，请反馈给群主。】</n-p>
           输入要备份的索引名称
           <n-input v-model:value="downloadIndexConfig.indexName"/>
           输入查询dsl，不写默认查询所有
-          <n-input type="textarea" style="min-height: 300px; max-height: 800px;"
-                   v-model:value="downloadIndexConfig.dsl"/>
+          <n-input v-model:value="downloadIndexConfig.dsl" style="min-height: 300px; max-height: 800px;"
+                   type="textarea"/>
           测试码，也就是QQ群号，请在github上查看
           <n-input v-model:value="downloadIndexConfig.code"/>
           <n-flex align="center">
             <n-button @click="downloadIndexConfig.show = false">取消</n-button>
-            <n-button type="primary" @click="downloadIndex" :loading="downloadIndexConfig.loading">开始下载</n-button>
+            <n-button :loading="downloadIndexConfig.loading" type="primary" @click="downloadIndex">开始下载</n-button>
           </n-flex>
           {{ downloadIndexConfig.msg }}
         </n-flex>
@@ -86,17 +86,17 @@
 
     <!--    添加index-->
     <n-drawer v-model:show="CreateIndexDrawerVisible" style="width: 38.2%">
-      <n-drawer-content title="创建索引" style="text-align: left;">
+      <n-drawer-content style="text-align: left;" title="创建索引">
         <n-form
-            :model="indexConfig"
-            label-placement="top"
-            style="text-align: left;"
             ref="formRef"
+            :model="indexConfig"
             :rules="{
               name: {required: true, message: '请输入索引名称', trigger: 'blur'},
               numberOfShards: {required: true, type: 'number', message: '请输入主分片', trigger: 'blur'},
               numberOfReplicas: {required: true, type: 'number', message: '请输入副本数量', trigger: 'blur'},
             }"
+            label-placement="top"
+            style="text-align: left;"
         >
           <n-form-item label="索引名称" path="name">
             <n-input v-model:value="indexConfig.name"/>
@@ -109,8 +109,7 @@
           </n-form-item>
           <n-p>mapping</n-p>
           <n-form-item path="mapping">
-            <n-input v-model:value="indexConfig.mapping" type="textarea" style="min-height: 300px; max-height: 800px;"
-                     placeholder='输入mapping的json，例如
+            <n-input v-model:value="indexConfig.mapping" placeholder='输入mapping的json，例如
 {
   "properties": {
     "created_at": {
@@ -118,13 +117,14 @@
       "format": "yyyy-MM-dd HH:mm:ss"
     }
   }
-}'/>
+}' style="min-height: 300px; max-height: 800px;"
+                     type="textarea"/>
           </n-form-item>
         </n-form>
         <template #footer>
           <n-space justify="end">
             <n-button @click="CreateIndexDrawerVisible = false">取消</n-button>
-            <n-button type="primary" @click="addIndex" :loading="addIndexLoading">保存</n-button>
+            <n-button :loading="addIndexLoading" type="primary" @click="addIndex">保存</n-button>
           </n-space>
         </template>
       </n-drawer-content>
@@ -132,28 +132,28 @@
 
     <!--    添加doc-->
     <n-drawer v-model:show="addDocDrawerVisible" style="width: 38.2%">
-      <n-drawer-content title="添加文档" style="text-align: left;">
+      <n-drawer-content style="text-align: left;" title="添加文档">
         <n-form
             :model="docConfig"
-            label-placement="top"
-            style="text-align: left;"
             :rules="{
               doc: {required: true, message: '请输入文档内容', trigger: 'blur'},
             }"
+            label-placement="top"
+            style="text-align: left;"
         >
           <n-form-item label="文档内容" path="doc">
-            <n-input v-model:value="docConfig.doc" type="textarea" style="min-height: 300px; max-height: 800px;"
-                     placeholder='输入文档的json，例如
+            <n-input v-model:value="docConfig.doc" placeholder='输入文档的json，例如
 {
   "field1": "value1",
   "field2": "value2"
-}'/>
+}' style="min-height: 300px; max-height: 800px;"
+                     type="textarea"/>
           </n-form-item>
         </n-form>
         <template #footer>
           <n-space justify="end">
             <n-button @click="addDocDrawerVisible = false">取消</n-button>
-            <n-button type="primary" @click="addDocumentFunc" :loading="addDocLoading">保存</n-button>
+            <n-button :loading="addDocLoading" type="primary" @click="addDocumentFunc">保存</n-button>
           </n-space>
         </template>
       </n-drawer-content>
@@ -165,7 +165,15 @@
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
 import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useDialog, useMessage} from 'naive-ui'
-import {createCsvContent, download_file, formatBytes, formattedJson, isValidJson, renderIcon} from "../utils/common";
+import {
+  createCsvContent,
+  download_file,
+  formatBytes,
+  formattedJson,
+  isValidJson,
+  refColumns,
+  renderIcon
+} from "../utils/common";
 import {AddFilled, AnnouncementOutlined, DriveFileMoveTwotone, MoreVertFilled, SearchFilled} from "@vicons/material";
 import {
   AddDocument,
@@ -259,7 +267,7 @@ const selectNode = (node) => {
 }
 
 
-onMounted( () => {
+onMounted(() => {
   emitter.on('selectNode', selectNode)
 })
 
@@ -280,7 +288,7 @@ const cacheData = (indexes) => {
   const key = 'es_king_indexes';
   let values = []
   const stored = localStorage.getItem(key);
-  if (stored){
+  if (stored) {
     values = JSON.parse(stored)
     for (let v of indexes) {
       if (!values.includes(v)) {
@@ -288,7 +296,7 @@ const cacheData = (indexes) => {
       }
     }
   }
-  if (values){
+  if (values) {
     localStorage.setItem(key, JSON.stringify(values.slice(-1000)))
   }
 }
@@ -335,10 +343,8 @@ const columns = [
   {
     title: '索引名',
     key: 'index',
-    sorter: 'default',
-    width: 120,
-    resizable: true,
-    ellipsis: {tooltip: {style: {maxWidth: '800px'},}},
+
+    width: 200,
     render: (row) => h(NText, {
           type: 'info',
           style: {cursor: 'pointer'},
@@ -347,49 +353,38 @@ const columns = [
         {default: () => row['index']}
     )
   },
-  {title: '别名', key: 'alias', sorter: 'default', width: 60, ellipsis: {tooltip: {style: {maxWidth: '800px'},}}},
+  {title: '别名', key: 'alias',   },
   {
     title: '健康',
     key: 'health',
-    sorter: 'default',
+
     render: (row) => h(NTag, {type: getType(row['health'])}, {default: () => row['health']}),
-    width: 60
   },
   {
     title: '状态',
     key: 'status',
-    sorter: 'default',
     render: (row) => h(NTag, {type: getType(row['status'])}, {default: () => row['status']}),
-    width: 40
   },
   {
     title: '主分片',
     key: 'pri',
-    sorter: 'default',
-    width: 40
   },
   {
     title: '副本',
     key: 'rep',
-    sorter: 'default',
-    width: 40
   },
   {
     title: '文档总数',
     key: 'docs.count',
-    sorter: 'default',
-    width: 100
+
   },
   {
-    title: '未清除的已删文档',
+    title: '软删除文档',
     key: 'docs.deleted',
-    sorter: 'default',
-    width: 100
   },
   {
     title: '占用存储',
     key: 'store.size',
-    width: 60,
     sorter: (a, b) => a['store.size'] - b['store.size'],
     render(row) {  // 这里要显示的是label，所以得转换一下
       return h('span', formatBytes(row['store.size']))
@@ -398,7 +393,6 @@ const columns = [
   {
     title: '操作',
     key: 'actions',
-    width: 60,
     render: (row) => {
       const options = [
         {label: '添加文档', key: 'addDocument'},

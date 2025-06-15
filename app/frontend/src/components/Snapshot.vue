@@ -19,11 +19,12 @@
 import {onMounted} from "vue";
 import emitter from "../utils/eventBus";
 
-onMounted( () => {
+onMounted(() => {
   emitter.on('selectNode', selectNode)
 })
 
-const selectNode = (node) => {}
+const selectNode = (node) => {
+}
 </script>
 
 <template>

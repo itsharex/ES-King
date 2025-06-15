@@ -20,30 +20,30 @@
 
     <n-flex align="center">
       <h2>Task线程</h2>
-      <n-button @click="getData" text :render-icon="renderIcon(RefreshOutlined)">refresh</n-button>
+      <n-button :render-icon="renderIcon(RefreshOutlined)" text @click="getData">refresh</n-button>
     </n-flex>
     <n-flex align="center">
-      <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
+      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
 
     </n-flex>
 
     <n-spin :show="loading" description="Connecting...">
       <n-data-table
-          :columns="columns"
-          :data="data"
-          :pagination="pagination"
-          size="small"
-          :bordered="false"
-          :max-height="600"
-          striped
-          :row-key="rowKey"
           v-model:checked-row-keys="selectedRowKeys"
+          :bordered="false"
+          :columns="refColumns(columns)"
+          :data="data"
+          :max-height="600"
+          :pagination="pagination"
+          :row-key="rowKey"
+          size="small"
+          striped
       />
     </n-spin>
   </n-flex>
 
   <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
-    <n-drawer-content title="结果" style="text-align: left;">
+    <n-drawer-content style="text-align: left;" title="结果">
       <n-code :code="json_data" language="json" show-line-numbers/>
     </n-drawer-content>
   </n-drawer>
@@ -53,10 +53,10 @@
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
 import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage} from 'naive-ui'
-import {createCsvContent, download_file, formatDate, formattedJson, renderIcon} from "../utils/common";
+import {createCsvContent, download_file, formatDate, formattedJson, refColumns, renderIcon} from "../utils/common";
 import {DriveFileMoveTwotone, DeleteOutlined, RefreshOutlined} from "@vicons/material";
 import {
-  GetTasks,CancelTasks
+  GetTasks, CancelTasks
 } from "../../wailsjs/go/service/ESService";
 
 const drawerVisible = ref(false)
@@ -78,7 +78,7 @@ const selectNode = async (node) => {
   await getData()
 }
 
-onMounted( () => {
+onMounted(() => {
   emitter.on('selectNode', selectNode)
   getData()
 })
@@ -128,15 +128,33 @@ const pagination = ref({
 
 
 const columns = [
-  {title: '任务id', key: 'task_id', sorter: 'default', width: 80, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},},
-  {title: '父任务id', key: 'parent_task_id', sorter: 'default', width: 80, resizable: true, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},},
-  {title: '任务节点', key: 'node_name', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
-  {title: 'IP', key: 'node_ip', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
-  {title: '类型', key: 'type', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}}},
-  {title: '任务行为', key: 'action', sorter: 'default', width: 120, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
-    render: (row) => h(NTag, {type: "info"},{default: () => row['action']}),
+  {
+    title: '任务id',
+    key: 'task_id',
+    width: 80,
   },
-  {title: '开始时间', key: 'start_time_in_millis', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
+  {
+    title: '父任务id',
+    key: 'parent_task_id',
+    width: 80,
+  },
+  {
+    title: '任务节点',
+    key: 'node_name',
+    width: 60,
+  },
+  {title: 'IP', key: 'node_ip', width: 60,},
+  {title: '类型', key: 'type', width: 60,},
+  {
+    title: '任务行为',
+    key: 'action',
+    width: 120,
+    render: (row) => h(NTag, {type: "info"}, {default: () => row['action']}),
+  },
+  {
+    title: '开始时间',
+    key: 'start_time_in_millis',
+    width: 60,
     render(row) {
       // 将毫秒时间戳转换为 Date 对象
       const date = new Date(row['start_time_in_millis']);
@@ -144,13 +162,19 @@ const columns = [
       return h('span', null, formatDate(date));
     },
   },
-  {title: '运行时间', key: 'running_time_in_nanos', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
+  {
+    title: '运行时间',
+    key: 'running_time_in_nanos',
+    width: 60,
   },
-    // 在 Vue 的模板中，布尔值会被转换为空字符串！！！
-  {title: '是否可取消', key: 'cancellable', sorter: 'default', width: 60, ellipsis: {tooltip: {style: { maxWidth: '800px' },}},
+  // 在 Vue 的模板中，布尔值会被转换为空字符串！！！
+  {
+    title: '是否可取消',
+    key: 'cancellable',
+    width: 60,
     render: (row) => h(NTag,
-        { type: row['cancellable'] ? "error" : "info" },
-        { default: () => row['cancellable'] ? '是' : '否' }
+        {type: row['cancellable'] ? "error" : "info"},
+        {default: () => row['cancellable'] ? '是' : '否'}
     ),
   },
   {
@@ -167,7 +191,7 @@ const columns = [
             disabled: !row['cancellable'],
           },
           {
-            default: () => '终止', icon: () => h(NIcon, null, { default: () => h(DeleteOutlined) })
+            default: () => '终止', icon: () => h(NIcon, null, {default: () => h(DeleteOutlined)})
           }
       )
     }

@@ -17,15 +17,15 @@
 
 <template>
   <!--  https://www.naiveui.com/zh-CN/os-theme/components/form  -->
-  <n-flex vertical justify="start">
+  <n-flex justify="start" vertical>
     <h2>设置</h2>
     <n-form :model="config" label-placement="top" style="text-align: left;">
 
       <n-form-item label="窗口宽度">
-        <n-input-number v-model:value="config.width" :min="800" :max="1920" :style="{ maxWidth: '120px' }"/>
+        <n-input-number v-model:value="config.width" :max="1920" :min="800" :style="{ maxWidth: '120px' }"/>
       </n-form-item>
       <n-form-item label="窗口高度">
-        <n-input-number v-model:value="config.height" :min="600" :max="1080" :style="{ maxWidth: '120px' }"/>
+        <n-input-number v-model:value="config.height" :max="1080" :min="600" :style="{ maxWidth: '120px' }"/>
       </n-form-item>
       <n-form-item label="语言">
         <n-select v-model:value="config.language" :options="languageOptions" :style="{ maxWidth: '120px' }"/>
@@ -33,9 +33,9 @@
 
       <n-form-item label="主题">
         <n-switch
+            v-model:value="theme"
             :checked-value="darkTheme.name"
             :unchecked-value="lightTheme.name"
-            v-model:value="theme"
             @update-value="changeTheme"
         >
           <template #checked-icon>
@@ -48,10 +48,10 @@
       </n-form-item>
       <n-form-item>
         <n-flex>
-          <n-button @click="saveConfig" strong type="primary">保存设置</n-button>
+          <n-button strong type="primary" @click="saveConfig">保存设置</n-button>
           <n-tooltip>
             <template #trigger>
-              <n-button @click="getSysInfo()" style="width: 100px">ProcessInfo</n-button>
+              <n-button style="width: 100px" @click="getSysInfo()">ProcessInfo</n-button>
             </template>
             <n-p style="white-space: pre-wrap; max-height: 400px; overflow: auto; text-align: left">{{ sys_info }}</n-p>
           </n-tooltip>

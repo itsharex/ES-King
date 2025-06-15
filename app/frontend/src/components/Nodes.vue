@@ -19,20 +19,20 @@
   <n-flex vertical>
     <n-flex align="center">
       <h2>节点</h2>
-      <n-button @click="getData" text :render-icon="renderIcon(RefreshOutlined)">refresh</n-button>
+      <n-button :render-icon="renderIcon(RefreshOutlined)" text @click="getData">refresh</n-button>
       <n-text>共计{{ data.length }}个</n-text>
-      <n-button @click="downloadAllDataCsv" :render-icon="renderIcon(DriveFileMoveTwotone)">导出为csv</n-button>
+      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
 
     </n-flex>
     <n-spin :show="loading" description="Connecting...">
       <n-data-table
           ref="tableRef"
-          :columns="columns"
-          :data="data"
-          size="small"
           :bordered="false"
-          striped
+          :columns="refColumns(columns)"
+          :data="data"
           :pagination="pagination"
+          size="small"
+          striped
       />
     </n-spin>
   </n-flex>
@@ -40,9 +40,9 @@
 <script setup>
 import {onMounted} from "vue";
 import emitter from "../utils/eventBus";
-import { h, ref, computed } from 'vue'
+import {h, ref, computed} from 'vue'
 import {NButton, NDataTable, NProgress, NTag, NText, useMessage} from 'naive-ui'
-import {createCsvContent, download_file, renderIcon} from "../utils/common";
+import {createCsvContent, download_file, refColumns, renderIcon} from "../utils/common";
 import {DriveFileMoveTwotone, RefreshOutlined} from "@vicons/material";
 import {GetNodes} from "../../wailsjs/go/service/ESService";
 
@@ -50,7 +50,7 @@ const selectNode = async (node) => {
   await getData()
 }
 
-onMounted( () => {
+onMounted(() => {
   emitter.on('selectNode', selectNode)
   getData()
 })
@@ -88,12 +88,12 @@ const downloadAllDataCsv = async () => {
 const renderProgress = (row, key) => {
   const value = Number(row[key])
   return h(NProgress, {
-    type:"line",
+    type: "line",
     status: getProgressType(value),
     percentage: value,
     indicatorPlacement: 'inside',
     height: 18,
-    borderRadius: 4
+    borderRadius: 4,
   })
 }
 
@@ -112,80 +112,59 @@ const pagination = ref({
 })
 
 const columns = [
-  { title: 'IP', key: 'ip', sorter: 'default',width: 100,resizable: true },
-  { title: '名称', key: 'name', sorter: 'default',width: 100,resizable: true },
+  {title: 'IP', key: 'ip',},
+  {title: '名称', key: 'name',},
   {
     title: '角色',
     key: 'node.role',
-    sorter: 'default',
-    render: (row) => h(NTag, { type: 'info' }, { default: () => row['node.role'] }),
-    width: 100
+    render: (row) => h(NTag, {type: 'info'}, {default: () => row['node.role']}),
   },
   {
     title: '主节点',
     key: 'master',
-    sorter: 'default',
-    render: (row) => h(NTag, { type: row.master === '*' ? 'success' : 'default' }, { default: () => row.master === '*' ? '是' : '否' }),
-    width: 70
+    render: (row) => h(NTag, {type: row.master === '*' ? 'success' : 'default'}, {default: () => row.master === '*' ? '是' : '否'}),
   },
   {
     title: '堆使用率',
     key: 'heap.percent',
-    sorter: 'default',
     render: (row) => renderProgress(row, 'heap.percent'),
-    width: 100
+    ellipsis: false
   },
   {
     title: '内存使用率',
     key: 'ram.percent',
-    sorter: 'default',
     render: (row) => renderProgress(row, 'ram.percent'),
-    width: 100
+    ellipsis: false
   },
   {
     title: '磁盘使用率',
     key: 'disk.used_percent',
-    sorter: 'default',
+    ellipsis: false,
     render: (row) => renderProgress(row, 'disk.used_percent'),
-    width: 100
   },
   {
     title: 'CPU使用率',
     key: 'cpu',
-    sorter: 'default',
+    ellipsis: false,
     render: (row) => renderProgress(row, 'cpu'),
-    width: 100
   },
   {
     title: '5m负载',
     key: 'load_5m',
-    sorter: 'default',
-    width: 60
   },
   {
     title: '内存使用',
     key: 'memory',
-    render: (row) => h(NText, { depth: 3 }, { default: () => `字段: ${row.fielddataMemory} | 查询: ${row.queryCacheMemory} | 请求: ${row.requestCacheMemory} | 段: ${row.segmentsMemory}` }),
-    width: 100,
-    ellipsis: {  // 带提示的省略
-      tooltip: true
-    }
+    render: (row) => h(NText, {depth: 3}, {default: () => `字段: ${row.fielddataMemory} | 查询: ${row.queryCacheMemory} | 请求: ${row.requestCacheMemory} | 段: ${row.segmentsMemory}`}),
   },
   {
     title: '段总数',
     key: 'segments.count',
-    sorter: 'default',
-    width: 60,
-    ellipsis: {  // 带提示的省略
-      tooltip: true
-    }
   }
 ]
 
 
-
 </script>
-
 
 
 <style scoped>

@@ -24,7 +24,7 @@
     </n-flex>
     <n-spin :show="loading" description="Connecting...">
       <n-collapse>
-        <n-collapse-item  v-for="(item_v, item_k) in collapse_item" :title="item_v" :name="item_v">
+        <n-collapse-item v-for="(item_v, item_k) in collapse_item" :name="item_v" :title="item_v">
           <n-table :single-line="false" size="small">
             <thead>
             <tr>
@@ -38,7 +38,7 @@
               <td>
                 <n-tooltip placement="top" trigger="hover">
                   <template #trigger>{{ getLabel(key) }}</template>
-                  {{key}}
+                  {{ key }}
                 </n-tooltip>
               </td>
               <td>{{ value }}</td>
@@ -70,7 +70,7 @@ const selectNode = async (node) => {
   await getData()
 }
 
-onMounted( () => {
+onMounted(() => {
   emitter.on('selectNode', selectNode)
   getData()
 })

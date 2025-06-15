@@ -27,15 +27,15 @@
       <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 40%;text-align: left;
         line-height: 34px;box-sizing: border-box;"/>
 
-      <n-button @click="sendRequest" :loading="send_loading" :render-icon="renderIcon(SendSharp)">Send</n-button>
-      <n-button @click="showDrawer = true" :render-icon="renderIcon(MenuBookTwotone)">ES查询示例</n-button>
-      <n-button @click="showHistoryDrawer = true" :render-icon="renderIcon(HistoryOutlined)">历史记录</n-button>
-      <n-button @click="exportJson" :render-icon="renderIcon(ArrowDownwardOutlined)">导出结果</n-button>
+      <n-button :loading="send_loading" :render-icon="renderIcon(SendSharp)" @click="sendRequest">Send</n-button>
+      <n-button :render-icon="renderIcon(MenuBookTwotone)" @click="showDrawer = true">ES查询示例</n-button>
+      <n-button :render-icon="renderIcon(HistoryOutlined)" @click="showHistoryDrawer = true">历史记录</n-button>
+      <n-button :render-icon="renderIcon(ArrowDownwardOutlined)" @click="exportJson">导出结果</n-button>
     </n-flex>
-    <n-grid x-gap="20" :cols="2">
+    <n-grid :cols="2" x-gap="20">
       <n-grid-item>
-        <div id="json_editor" style="white-space: pre-wrap; white-space-collapse: preserve; border: 0 !important;"
-             class="editarea"
+        <div id="json_editor" class="editarea"
+             style="white-space: pre-wrap; white-space-collapse: preserve; border: 0 !important;"
              @paste="toTree"></div>
       </n-grid-item>
       <n-grid-item>
@@ -44,67 +44,67 @@
     </n-grid>
   </n-flex>
   <!--  示例-->
-  <n-drawer v-model:show="showDrawer" style="width: 38.2%" placement="right">
-    <n-drawer-content title="ES DSL查询示例" style="text-align: left;">
+  <n-drawer v-model:show="showDrawer" placement="right" style="width: 38.2%">
+    <n-drawer-content style="text-align: left;" title="ES DSL查询示例">
       <n-flex vertical>
         <n-collapse>
-          <n-collapse-item title="1. Term查询" name="1">
+          <n-collapse-item name="1" title="1. Term查询">
             <n-code :code="dslExamples.term" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="2. Terms查询" name="2">
+          <n-collapse-item name="2" title="2. Terms查询">
             <n-code :code="dslExamples.terms" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="3. Match查询" name="3">
+          <n-collapse-item name="3" title="3. Match查询">
             <n-code :code="dslExamples.match" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="4. Match Phrase查询" name="4">
+          <n-collapse-item name="4" title="4. Match Phrase查询">
             <n-code :code="dslExamples.matchPhrase" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="5. Range查询" name="5">
+          <n-collapse-item name="5" title="5. Range查询">
             <n-code :code="dslExamples.range" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="6. Bool复合查询" name="6">
+          <n-collapse-item name="6" title="6. Bool复合查询">
             <n-code :code="dslExamples.bool" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="7. Terms Aggregation" name="7">
+          <n-collapse-item name="7" title="7. Terms Aggregation">
             <n-code :code="dslExamples.termsAggs" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="8. Date Histogram聚合" name="8">
+          <n-collapse-item name="8" title="8. Date Histogram聚合">
             <n-code :code="dslExamples.dateHistogram" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="9. Nested查询" name="9">
+          <n-collapse-item name="9" title="9. Nested查询">
             <n-code :code="dslExamples.nested" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="10. Exists查询" name="10">
+          <n-collapse-item name="10" title="10. Exists查询">
             <n-code :code="dslExamples.exists" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="11. Multi-match查询" name="11">
+          <n-collapse-item name="11" title="11. Multi-match查询">
             <n-code :code="dslExamples.multiMatch" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="12. Wildcard查询" name="12">
+          <n-collapse-item name="12" title="12. Wildcard查询">
             <n-code :code="dslExamples.wildcard" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="13. Metrics聚合" name="13">
+          <n-collapse-item name="13" title="13. Metrics聚合">
             <n-code :code="dslExamples.metrics" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="14. Cardinality聚合" name="14">
+          <n-collapse-item name="14" title="14. Cardinality聚合">
             <n-code :code="dslExamples.cardinality" language="json"/>
           </n-collapse-item>
 
-          <n-collapse-item title="15. Script查询" name="15">
+          <n-collapse-item name="15" title="15. Script查询">
             <n-code :code="dslExamples.script" language="json"/>
           </n-collapse-item>
         </n-collapse>
@@ -118,8 +118,8 @@
       <!-- 搜索框 -->
       <n-input
           v-model:value="searchText"
-          placeholder="搜索历史记录，同时支持method、path、dsl"
           clearable
+          placeholder="搜索历史记录，同时支持method、path、dsl"
           style="margin-bottom: 12px"
       >
         <template #prefix>
@@ -133,13 +133,13 @@
       <n-list>
         <n-pagination
             v-model:page="currentPage"
-            :page-size="pageSize"
             :item-count="filteredHistory?.length"
+            :page-size="pageSize"
         />
 
-        <n-list-item style="cursor: pointer;" @click="handleHistoryClick(item.method, item.path, item.dsl)"
-                     v-for="item in currentPageData" :key="item.timestamp">
-          <n-tooltip placement="left" trigger="hover" style="max-height: 618px;overflow-y: auto">
+        <n-list-item v-for="item in currentPageData" :key="item.timestamp"
+                     style="cursor: pointer;" @click="handleHistoryClick(item.method, item.path, item.dsl)">
+          <n-tooltip placement="left" style="max-height: 618px;overflow-y: auto" trigger="hover">
             <template #trigger>
               <div style="display: flex;font-size: 14px; justify-content: space-between;">
                 <n-tag :type="getMethodTagType(item.method)">
@@ -151,7 +151,7 @@
                 </n-text>
               </div>
             </template>
-            <n-code :code="formatDSL(item.dsl)" language="json" style="text-align: left;" v-if="item.dsl !== ''"/>
+            <n-code v-if="item.dsl !== ''" :code="formatDSL(item.dsl)" language="json" style="text-align: left;"/>
 
           </n-tooltip>
         </n-list-item>

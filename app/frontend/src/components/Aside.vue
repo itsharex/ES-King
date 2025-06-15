@@ -16,14 +16,14 @@
   -->
 
 <template>
-<!--  https://www.naiveui.com/zh-CN/os-theme/components/menu-->
-    <n-menu
-        :mode="'vertical'"
-        :value="props.value"
-        @update:value="handleMenuSelect"
-        :options="props.options"
-        style="--wails-draggable:no-drag"
-    />
+  <!--  https://www.naiveui.com/zh-CN/os-theme/components/menu-->
+  <n-menu
+      :mode="'vertical'"
+      :value="props.value"
+      @update:value="handleMenuSelect"
+      :options="props.options"
+      style="--wails-draggable:no-drag"
+  />
 
 </template>
 

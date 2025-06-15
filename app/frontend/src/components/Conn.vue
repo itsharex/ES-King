@@ -89,7 +89,7 @@
             <n-switch :round="false" v-model:value="currentNode.useSSL"/>
           </n-form-item>
 
-          <n-form-item  label="跳过 SSL 验证" path="skipSSLVerify">
+          <n-form-item label="跳过 SSL 验证" path="skipSSLVerify">
             <n-switch :round="false" v-model:value="currentNode.skipSSLVerify"/>
           </n-form-item>
 
@@ -143,7 +143,7 @@ const drawerTitle = computed(() => isEditing.value ? '编辑连接' : '添加连
 
 const formRef = ref(null)
 
-onMounted( () => {
+onMounted(() => {
   refreshNodeList()
 })
 
