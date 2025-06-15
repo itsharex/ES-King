@@ -314,7 +314,7 @@ const getData = async (value) => {
 const pageKey = 'esKing:index:pageKey'
 const pagination = ref({
   page: 1,
-  pageSize: localStorage.getItem(pageKey) || 10,
+  pageSize: parseInt(localStorage.getItem(pageKey)) || 10,
   showSizePicker: true,
   pageSizes: [5, 10, 15, 20, 25, 30, 40],
   onChange: (page) => {
