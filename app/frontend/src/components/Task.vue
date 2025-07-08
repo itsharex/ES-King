@@ -23,8 +23,13 @@
       <n-button :render-icon="renderIcon(RefreshOutlined)" text @click="getData">refresh</n-button>
     </n-flex>
     <n-flex align="center">
+      <!-- 新增的查询功能 -->
+      <n-input v-model:value="taskIdFilter" placeholder="任务ID" style="width: 150px; margin-right: 10px" />
+      <n-input v-model:value="nodeFilter" placeholder="任务节点" style="width: 150px; margin-right: 10px" />
+      <n-input v-model:value="actionFilter" placeholder="任务行为" style="width: 150px; margin-right: 10px" />
+      <n-button  @click="applyFilters" style="margin-right: 10px">查询</n-button>
+      <!-- 原有的导出按钮 -->
       <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
-
     </n-flex>
 
     <n-spin :show="loading" description="Connecting...">
@@ -32,7 +37,7 @@
           v-model:checked-row-keys="selectedRowKeys"
           :bordered="false"
           :columns="refColumns(columns)"
-          :data="data"
+          :data="filteredData"
           :max-height="600"
           :pagination="pagination"
           :row-key="rowKey"
@@ -47,8 +52,8 @@
       <n-code :code="json_data" language="json" show-line-numbers/>
     </n-drawer-content>
   </n-drawer>
-
 </template>
+
 <script setup>
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
@@ -83,7 +88,23 @@ onMounted(() => {
   getData()
 })
 
+// 新增的过滤相关响应式数据
+const taskIdFilter = ref('')
+const nodeFilter = ref('')
+const actionFilter = ref('')
+const filteredData = ref([])
 
+// 新增的过滤方法
+const applyFilters = () => {
+  filteredData.value = data.value.filter(item => {
+    const matchesTaskId = !taskIdFilter.value || item.task_id.toLowerCase().includes(taskIdFilter.value.toLowerCase())
+    const matchesNode = !nodeFilter.value || item.node_name.toLowerCase().includes(nodeFilter.value.toLowerCase())
+    const matchesAction = !actionFilter.value || item.action.toLowerCase().includes(actionFilter.value.toLowerCase())
+    return matchesTaskId && matchesNode && matchesAction
+  })
+}
+
+// 修改初始化获取数据的方法，使用过滤后的数据
 const getData = async () => {
   const res = await GetTasks()
   console.log(res)
@@ -92,6 +113,8 @@ const getData = async () => {
   } else {
     console.log(res)
     data.value = res.results
+    // 初始化时也应用过滤
+    applyFilters()
   }
 
 }

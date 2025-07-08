@@ -559,6 +559,58 @@ func (es *ESService) CancelTasks(taskID string) *types.ResultResp {
 	return &types.ResultResp{Result: result}
 }
 
+// GetSnapshots 获取ES快照列表
+func (es *ESService) GetSnapshots() *types.ResultsResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultsResp{Err: "请先选择一个集群"}
+	}
+
+	// 1. 首先获取所有仓库列表
+	var repositories []string
+	reposResp, err := es.Client.R().SetResult(&map[string][]string{"repositories": {}}).Get(es.ConnectObj.Host + "/_snapshot")
+	if err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+	if reposResp.StatusCode() != http.StatusOK {
+		return &types.ResultsResp{Err: string(reposResp.Body())}
+	}
+	err = json.Unmarshal(reposResp.Body(), &map[string]*[]string{"repositories": &repositories})
+	if err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+
+	// 2. 遍历每个仓库获取其快照
+	var allSnapshots []any
+	for _, repo := range repositories {
+		var repoResult map[string]interface{}
+		resp, err := es.Client.R().SetResult(&repoResult).Get(es.ConnectObj.Host + "/_snapshot/" + repo + "/_all")
+		if err != nil {
+			continue
+		}
+		if resp.StatusCode() != http.StatusOK {
+			continue
+		}
+
+		// 3. 处理每个快照的数据
+		snapshots := repoResult["snapshots"].([]interface{})
+		for _, snap := range snapshots {
+			snapshot := snap.(map[string]interface{})
+			allSnapshots = append(allSnapshots, map[string]interface{}{
+				"snapshot":          snapshot["snapshot"],
+				"repository":        repo,
+				"state":             strings.ToUpper(snapshot["state"].(string)),
+				"start_time":        snapshot["start_time"],
+				"end_time":          snapshot["end_time"],
+				"indices":           snapshot["indices"],
+				"total_shards":      snapshot["shards_total"],
+				"successful_shards": snapshot["shards_successful"],
+			})
+		}
+	}
+
+	return &types.ResultsResp{Results: allSnapshots}
+}
+
 // SearchResponse 定义 ES 搜索响应的结构
 type SearchResponse struct {
 	ScrollID string `json:"_scroll_id"`
