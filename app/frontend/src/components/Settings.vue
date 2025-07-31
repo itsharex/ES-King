@@ -36,7 +36,7 @@
             v-model:value="theme"
             :checked-value="darkTheme.name"
             :unchecked-value="lightTheme.name"
-            @update-value="changeTheme"
+            @update:value="changeTheme"
         >
           <template #checked-icon>
             <n-icon :component="NightlightRoundFilled"/>
