@@ -482,6 +482,7 @@ function themeChange(newTheme) {
   const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/jsoneditor'
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
+  ace_editor.value?.setTheme(new_editor_theme)
 
 }
 
