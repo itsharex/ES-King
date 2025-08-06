@@ -505,7 +505,11 @@ const sendRequest = async () => {
     const res = await Search(method.value, path, editor.value.getText())
     // 返回不是200也写入结果框
     if (res.err !== "") {
-      response.value.set(res.err)
+      try {
+        response.value.set(JSON.stringify(JSON.parse(res.err), null, 2))
+      } catch {
+        response.value.set(res.err)
+      }
     } else {
       response.value.set(res.result)
       // 写入历史记录
