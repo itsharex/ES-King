@@ -17,9 +17,9 @@
   },
   "devDependencies": {
     "@vicons/material": "^0.12.0",
-    "@vitejs/plugin-vue": "^5.1.4",
+    "@vitejs/plugin-vue": "^6.0.0",
     "naive-ui": "^2.39.0",
-    "vite": "6.3.4"
+    "vite": "7.1.5"
   },
   "keywords": [],
   "author": "bronya0"
