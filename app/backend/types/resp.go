@@ -40,8 +40,8 @@ type ResultsResp struct {
 	Err     string `json:"err"`
 }
 type ResultResp struct {
-	Result map[string]any `json:"result"`
-	Err    string         `json:"err"`
+	Result any    `json:"result"`
+	Err    string `json:"err"`
 }
 type Connect struct {
 	Id            int    `json:"id"`

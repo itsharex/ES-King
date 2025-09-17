@@ -21,16 +21,17 @@ import (
 	"app/backend/types"
 	"bufio"
 	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (
@@ -38,7 +39,7 @@ const (
 	StatsApi        = "/_cluster/stats" + FORMAT
 	AddDoc          = "/_doc"
 	HealthApi       = "/_cluster/health"
-	NodesApi        = "/_cat/nodes?format=json&pretty&h=ip,name,heap.percent,heap.current,heap.max,ram.percent,ram.current,ram.max,node.role,master,cpu,load_5m,disk.used_percent,disk.used,disk.total,fielddataMemory,queryCacheMemory,requestCacheMemory,segmentsMemory,segments.count"
+	NodesApi        = "/_nodes/stats/indices,os,fs,process,jvm"
 	AllIndexApi     = "/_cat/indices?format=json&pretty&bytes=b"
 	ClusterSettings = "/_cluster/settings"
 	ForceMerge      = "/_forcemerge?wait_for_completion=false"
@@ -52,6 +53,7 @@ const (
 type ESService struct {
 	ConnectObj *types.Connect
 	Client     *resty.Client
+	mu         sync.RWMutex
 }
 
 func NewESService() *ESService {
@@ -67,15 +69,14 @@ func NewESService() *ESService {
 
 func ConfigureSSL(UseSSL, SkipSSLVerify bool, client *resty.Client, CACert string) {
 	// Configure SSL
+	// CACert是证书内容
 	if UseSSL {
 		client.SetScheme("https")
 		if SkipSSLVerify {
 			client.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 		}
 		if CACert != "" {
-			caCertPool := x509.NewCertPool()
-			caCertPool.AppendCertsFromPEM([]byte(CACert))
-			client.SetRootCertificate(CACert)
+			client.SetRootCertificateFromString(CACert)
 		}
 	} else {
 		client.SetScheme("http")
@@ -83,6 +84,9 @@ func ConfigureSSL(UseSSL, SkipSSLVerify bool, client *resty.Client, CACert strin
 }
 
 func (es *ESService) SetConnect(key, host, username, password, CACert string, UseSSL, SkipSSLVerify bool) {
+	es.mu.Lock()         // 加写锁
+	defer es.mu.Unlock() // 方法结束时解锁
+
 	es.ConnectObj = &types.Connect{
 		Name:          key,
 		Host:          host,
@@ -137,19 +141,19 @@ func (es *ESService) AddDocument(index, doc string) *types.ResultResp {
 	return &types.ResultResp{Result: result}
 }
 
-func (es *ESService) GetNodes() *types.ResultsResp {
+func (es *ESService) GetNodes() *types.ResultResp {
 	if es.ConnectObj.Host == "" {
-		return &types.ResultsResp{Err: "请先选择一个集群"}
+		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result []any
+	var result any
 	resp, err := es.Client.R().SetResult(&result).Get(es.ConnectObj.Host + NodesApi)
 	if err != nil {
-		return &types.ResultsResp{Err: err.Error()}
+		return &types.ResultResp{Err: err.Error()}
 	}
 	if resp.StatusCode() != http.StatusOK {
-		return &types.ResultsResp{Err: string(resp.Body())}
+		return &types.ResultResp{Err: string(resp.Body())}
 	}
-	return &types.ResultsResp{Results: result}
+	return &types.ResultResp{Result: result}
 }
 
 func (es *ESService) GetHealth() *types.ResultResp {
@@ -407,7 +411,7 @@ func (es *ESService) Search(method, path string, body any) *types.ResultResp {
 	if es.ConnectObj.Host == "" {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
-	var result map[string]any
+	var result any
 
 	resp, err := es.Client.R().
 		SetBody(body).
@@ -474,7 +478,11 @@ func (es *ESService) GetIndexAliases(indexNameList []string) *types.ResultResp {
 	for name, obj := range result {
 		if aliases, ok := obj.(map[string]any)["aliases"]; ok {
 			names := make([]string, 0)
-			for aliasName := range aliases.(map[string]any) {
+			aliases, ok := aliases.(map[string]any)
+			if !ok {
+				continue
+			}
+			for aliasName := range aliases {
 				names = append(names, aliasName)
 			}
 			if len(names) > 0 {
@@ -514,7 +522,10 @@ func (es *ESService) GetTasks() *types.ResultsResp {
 	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultsResp{Err: string(resp.Body())}
 	}
-	nodes := result["nodes"].(map[string]any)
+	nodes, ok := result["nodes"].(map[string]any)
+	if !ok {
+		return &types.ResultsResp{Err: "获取任务列表失败"}
+	}
 
 	var data []any
 	for _, nodeObj := range nodes {
@@ -523,11 +534,22 @@ func (es *ESService) GetTasks() *types.ResultsResp {
 			continue
 		}
 		for taskID, taskInfo := range nodeTasks {
-			taskInfoMap := taskInfo.(map[string]any)
+			taskInfoMap, ok := taskInfo.(map[string]any)
+			if !ok {
+				continue
+			}
+			nodeName, ok := nodeObj.(map[string]any)
+			if !ok {
+				continue
+			}
+			nodeIp, ok := nodeObj.(map[string]any)
+			if !ok {
+				continue
+			}
 			data = append(data, map[string]any{
 				"task_id":               taskID,
-				"node_name":             nodeObj.(map[string]any)["name"],
-				"node_ip":               nodeObj.(map[string]any)["ip"],
+				"node_name":             nodeName["name"],
+				"node_ip":               nodeIp["ip"],
 				"type":                  taskInfoMap["type"],
 				"action":                taskInfoMap["action"],
 				"start_time_in_millis":  taskInfoMap["start_time_in_millis"],
@@ -566,24 +588,24 @@ func (es *ESService) GetSnapshots() *types.ResultsResp {
 	}
 
 	// 1. 首先获取所有仓库列表
-	var repositories []string
-	reposResp, err := es.Client.R().SetResult(&map[string][]string{"repositories": {}}).Get(es.ConnectObj.Host + "/_snapshot")
+	var repositories map[string]interface{} // 修改目标类型
+	reposResp, err := es.Client.R().Get(es.ConnectObj.Host + "/_snapshot")
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
 	}
 	if reposResp.StatusCode() != http.StatusOK {
 		return &types.ResultsResp{Err: string(reposResp.Body())}
 	}
-	err = json.Unmarshal(reposResp.Body(), &map[string]*[]string{"repositories": &repositories})
+	err = json.Unmarshal(reposResp.Body(), &repositories) // 直接解析到 map
 	if err != nil {
 		return &types.ResultsResp{Err: err.Error()}
 	}
 
 	// 2. 遍历每个仓库获取其快照
 	var allSnapshots []any
-	for _, repo := range repositories {
+	for repoName := range repositories { // 遍历 map 的 key
 		var repoResult map[string]interface{}
-		resp, err := es.Client.R().SetResult(&repoResult).Get(es.ConnectObj.Host + "/_snapshot/" + repo + "/_all")
+		resp, err := es.Client.R().SetResult(&repoResult).Get(es.ConnectObj.Host + "/_snapshot/" + repoName + "/_all")
 		if err != nil {
 			continue
 		}
@@ -597,7 +619,7 @@ func (es *ESService) GetSnapshots() *types.ResultsResp {
 			snapshot := snap.(map[string]interface{})
 			allSnapshots = append(allSnapshots, map[string]interface{}{
 				"snapshot":          snapshot["snapshot"],
-				"repository":        repo,
+				"repository":        repoName,
 				"state":             strings.ToUpper(snapshot["state"].(string)),
 				"start_time":        snapshot["start_time"],
 				"end_time":          snapshot["end_time"],

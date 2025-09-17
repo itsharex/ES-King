@@ -24,12 +24,12 @@
     <n-flex align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
 
-      <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 40%;text-align: left;
+      <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 46.8%;text-align: left;
         line-height: 34px;box-sizing: border-box;"/>
 
       <n-button :loading="send_loading" :render-icon="renderIcon(SendSharp)" @click="sendRequest">Send</n-button>
-      <n-button :render-icon="renderIcon(MenuBookTwotone)" @click="showDrawer = true">ES查询示例</n-button>
       <n-button :render-icon="renderIcon(HistoryOutlined)" @click="showHistoryDrawer = true">历史记录</n-button>
+      <n-button :render-icon="renderIcon(MenuBookTwotone)" @click="showDrawer = true">ES查询示例</n-button>
       <n-button :render-icon="renderIcon(ArrowDownwardOutlined)" @click="exportJson">导出结果</n-button>
     </n-flex>
     <n-grid :cols="2" x-gap="20">
@@ -165,17 +165,20 @@
 
 import {NButton, NGrid, NGridItem, NInput, NSelect, useMessage} from 'naive-ui'
 import {computed, nextTick, onMounted, ref} from "vue";
-import JSONEditor from 'jsoneditor';
-import '../assets/css/jsoneditor.min.css'
 import {Search} from "../../wailsjs/go/service/ESService";
 import {ArrowDownwardOutlined, HistoryOutlined, MenuBookTwotone, SearchFilled, SendSharp} from "@vicons/material";
 import {formatTimestamp, renderIcon} from "../utils/common";
-import 'ace-builds/src-noconflict/theme-monokai'
-import 'jsoneditor/src/js/ace/theme-jsoneditor';
-import ace from 'ace-builds';
 import {GetConfig, GetHistory, SaveHistory} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
+import JSONEditor from 'jsoneditor';
+import '../assets/css/jsoneditor.min.css'
+import 'jsoneditor/src/js/ace/theme-jsoneditor';
+import 'ace-builds/src-noconflict/mode-text'
+import 'ace-builds/src-noconflict/ext-language_tools'
+import 'ace-builds/src-noconflict/theme-textmate'
+import 'ace-builds/src-noconflict/theme-monokai'
+import ace from 'ace-builds';
 
 const message = useMessage()
 const method = ref('POST')
@@ -313,26 +316,23 @@ onMounted(async () => {
   await read_history()
 
   await nextTick()
-  initAce("输入rest api，以/开头；查询请用POST请求；GET不会携带body")
+  initAce("输入rest api，以/开头；查询请用POST请求；GET不会携带body", loadedConfig.theme)
   await setAceIndex()
 
 });
 
 
 // =============== ace编辑器 =================
-import 'ace-builds/src-noconflict/mode-text'
-import 'ace-builds/src-noconflict/ext-language_tools'
-
 const ace_editor = ref(null)
 const ace_editorId = "ace-editor"
 
 // 初始化 Ace 编辑器
-const initAce = (defaultValue) => {
+const initAce = (defaultValue, theme) => {
   ace.config.set('basePath', '/node_modules/ace-builds/src-noconflict')
 
   ace_editor.value = ace.edit(document.getElementById(ace_editorId), {
     mode: `ace/mode/text`,
-    theme: `ace/theme/monokai`,
+    theme: theme === 'light'? 'ace/theme/textmate': 'ace/theme/monokai',
     placeholder: defaultValue,
     fontSize: 14,
     enableBasicAutocompletion: true,
@@ -479,7 +479,7 @@ function handleHistoryClick(m, p, d) {
 }
 
 function themeChange(newTheme) {
-  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/jsoneditor'
+  const new_editor_theme = newTheme.name === 'dark' ? 'ace/theme/monokai' : 'ace/theme/textmate'
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
   ace_editor.value?.setTheme(new_editor_theme)
@@ -505,9 +505,10 @@ const sendRequest = async () => {
   try {
     const res = await Search(method.value, path, editor.value.getText())
     // 返回不是200也写入结果框
+    console.log(res)
     if (res.err !== "") {
       try {
-        response.value.set(JSON.stringify(JSON.parse(res.err), null, 2))
+        response.value.set(JSON.parse(res.err))
       } catch {
         response.value.set(res.err)
       }

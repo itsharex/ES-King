@@ -89,11 +89,20 @@ export function createCsvContent(allData, columns) {
     // 过滤掉没有 title 的列
     columns = columns.filter(col => col.title !== undefined);
 
-    const headers = columns.map(col => col.title).join(',')
+    const headers = columns.map(col => col.title).join(',');
     const rows = allData.map(row =>
-        columns.map(col => row[col.key]).join(',')
-    ).join('\n')
-    return `${headers}\n${rows}`
+        columns.map(col => {
+            // 如果定义了自定义的 getCsvValue 函数，则使用它
+            if (col.getCsvValue) {
+                return `"${col.getCsvValue(row)}"`; // 加上引号防止内容中的逗号导致换列
+            }
+            // 否则，使用默认的 key 来取值
+            const value = row[col.key];
+            // 对于可能包含逗号的值，最好也用引号包起来
+            return typeof value === 'string' ? `"${value}"` : value;
+        }).join(',')
+    ).join('\n');
+    return `${headers}\n${rows}`;
 }
 
 // 下载件的函数，csv type：'text/csv;charset=utf-8;'
@@ -179,10 +188,41 @@ export function refColumns(columns) {
 /**
  * 根据标题文本计算建议宽度（中英文混合）
  */
-function calculateWidthByTitle(title) {
+export function calculateWidthByTitle(title) {
     let width = 0;
     for (const char of title) {
         width += /[\u4e00-\u9fa5]/.test(char) ? 16 : 8; // 中文16px，英文8px
     }
     return Math.max(width + 24, 80); // 加 padding 且不低于 80px
+}
+
+/**
+ * 格式化毫秒为可读时长
+ */
+export function formatMillis(ms) {
+    if (!+ms) return '0s';
+    const seconds = Math.floor(ms / 1000);
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    let result = '';
+    if (d > 0) result += `${d}d `;
+    if (h > 0) result += `${h}h `;
+    if (m > 0) result += `${m}m `;
+    if (s > 0 || result === '') result += `${s}s`;
+    return result.trim();
+}
+
+export function formatMillisToDays(ms){
+    if (!+ms) return '0天';
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    return `${days}天`;
+}
+
+/**
+ * 格式化大数字（加逗号）
+ */
+export function formatNumber(num) {
+    return num?.toLocaleString() ?? '0';
 }

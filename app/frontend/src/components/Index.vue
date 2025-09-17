@@ -369,23 +369,27 @@ const columns = [
   {
     title: '主分片',
     key: 'pri',
+    sorter: (a, b) => Number(a['pri']) - Number(b['pri'])
   },
   {
     title: '副本',
     key: 'rep',
+    sorter: (a, b) => Number(a['rep']) - Number(b['rep'])
   },
   {
     title: '文档总数',
     key: 'docs.count',
+    sorter: (a, b) => Number(a['docs.count']) - Number(b['docs.count'])
   },
   {
     title: '软删除文档',
     key: 'docs.deleted',
+    sorter: (a, b) => Number(a['docs.deleted']) - Number(b['docs.deleted'])
   },
   {
     title: '占用存储',
     key: 'store.size',
-    sorter: (a, b) => a['store.size'] - b['store.size'],
+    sorter: (a, b) => Number(a['store.size']) - Number(b['store.size']),
     render(row) {  // 这里要显示的是label，所以得转换一下
       return h('span', formatBytes(row['store.size']))
     }

@@ -33,6 +33,9 @@
       <n-form-item label="技术交流群">
         <n-button :focusable="false" @click="openUrl(qq_url)">点我加群✨</n-button>
       </n-form-item>
+      <n-form-item label="打赏是开源项目生存的动力，谢谢！">
+        <img src="../assets/images/wechat.png" alt="pay" style="width: 200px; height: 200px;">
+      </n-form-item>
 
     </n-form>
   </n-flex>
@@ -50,7 +53,6 @@ const qq_url = "https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV
 const home_url = "https://github.com/Bronya0/ES-King"
 
 
-const message = useMessage()
 
 onMounted(async () => {
 
