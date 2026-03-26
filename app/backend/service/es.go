@@ -633,6 +633,374 @@ func (es *ESService) GetSnapshots() *types.ResultsResp {
 	return &types.ResultsResp{Results: allSnapshots}
 }
 
+// GetSnapshotRepositories 获取所有快照仓库
+func (es *ESService) GetSnapshotRepositories() *types.ResultsResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultsResp{Err: "请先选择一个集群"}
+	}
+
+	var repositories map[string]any
+	resp, err := es.Client.R().Get(es.ConnectObj.Host + "/_snapshot")
+	if err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultsResp{Err: string(resp.Body())}
+	}
+	err = json.Unmarshal(resp.Body(), &repositories)
+	if err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+
+	var data []any
+	for name, info := range repositories {
+		repoInfo, ok := info.(map[string]any)
+		if !ok {
+			continue
+		}
+		item := map[string]any{
+			"name":     name,
+			"type":     repoInfo["type"],
+			"settings": repoInfo["settings"],
+		}
+		data = append(data, item)
+	}
+	return &types.ResultsResp{Results: data}
+}
+
+// CreateSnapshotRepository 创建快照仓库
+func (es *ESService) CreateSnapshotRepository(name, repoType, settings string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if name == "" || repoType == "" {
+		return &types.ResultResp{Err: "仓库名称和类型不能为空"}
+	}
+
+	var settingsMap map[string]any
+	if settings != "" {
+		if err := json.Unmarshal([]byte(settings), &settingsMap); err != nil {
+			return &types.ResultResp{Err: "settings JSON 格式无效: " + err.Error()}
+		}
+	}
+
+	body := map[string]any{
+		"type":     repoType,
+		"settings": settingsMap,
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetBody(body).
+		SetResult(&result).
+		Put(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(name))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// DeleteSnapshotRepository 删除快照仓库
+func (es *ESService) DeleteSnapshotRepository(name string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if name == "" {
+		return &types.ResultResp{Err: "仓库名称不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Delete(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(name))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// VerifySnapshotRepository 验证快照仓库
+func (es *ESService) VerifySnapshotRepository(name string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if name == "" {
+		return &types.ResultResp{Err: "仓库名称不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Post(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(name) + "/_verify")
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// CreateSnapshot 创建快照（异步）
+func (es *ESService) CreateSnapshot(repository, snapshot, indices string, includeGlobalState bool) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if repository == "" || snapshot == "" {
+		return &types.ResultResp{Err: "仓库名称和快照名称不能为空"}
+	}
+
+	body := map[string]any{
+		"include_global_state": includeGlobalState,
+	}
+	if indices != "" {
+		body["indices"] = indices
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetBody(body).
+		SetResult(&result).
+		Put(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(repository) + "/" + url.PathEscape(snapshot) + "?wait_for_completion=false")
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusAccepted {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// DeleteSnapshot 删除快照
+func (es *ESService) DeleteSnapshot(repository, snapshot string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if repository == "" || snapshot == "" {
+		return &types.ResultResp{Err: "仓库名称和快照名称不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Delete(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(repository) + "/" + url.PathEscape(snapshot))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// GetSnapshotDetail 获取快照详情
+func (es *ESService) GetSnapshotDetail(repository, snapshot string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if repository == "" || snapshot == "" {
+		return &types.ResultResp{Err: "仓库名称和快照名称不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Get(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(repository) + "/" + url.PathEscape(snapshot))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// RestoreSnapshot 恢复快照（异步）
+func (es *ESService) RestoreSnapshot(repository, snapshot, indices, renamePattern, renameReplacement string, includeGlobalState bool) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if repository == "" || snapshot == "" {
+		return &types.ResultResp{Err: "仓库名称和快照名称不能为空"}
+	}
+
+	body := map[string]any{
+		"include_global_state": includeGlobalState,
+	}
+	if indices != "" {
+		body["indices"] = indices
+	}
+	if renamePattern != "" {
+		body["rename_pattern"] = renamePattern
+	}
+	if renameReplacement != "" {
+		body["rename_replacement"] = renameReplacement
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetBody(body).
+		SetResult(&result).
+		Post(es.ConnectObj.Host + "/_snapshot/" + url.PathEscape(repository) + "/" + url.PathEscape(snapshot) + "/_restore?wait_for_completion=false")
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusAccepted {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// GetSnapshotRestoreStatus 获取快照恢复状态
+func (es *ESService) GetSnapshotRestoreStatus() *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Get(es.ConnectObj.Host + "/_recovery?active_only=true&format=json")
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// GetSLMPolicies 获取所有SLM策略
+func (es *ESService) GetSLMPolicies() *types.ResultsResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultsResp{Err: "请先选择一个集群"}
+	}
+
+	var result []any
+	resp, err := es.Client.R().Get(es.ConnectObj.Host + "/_slm/policy")
+	if err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultsResp{Err: string(resp.Body())}
+	}
+	// SLM API 返回的是一个对象 {policyId: {...}, ...}
+	var policiesMap map[string]any
+	if err := json.Unmarshal(resp.Body(), &policiesMap); err != nil {
+		return &types.ResultsResp{Err: err.Error()}
+	}
+
+	for name, info := range policiesMap {
+		policyInfo, ok := info.(map[string]any)
+		if !ok {
+			continue
+		}
+		policyInfo["name"] = name
+		result = append(result, policyInfo)
+	}
+	return &types.ResultsResp{Results: result}
+}
+
+// CreateSLMPolicy 创建SLM策略
+func (es *ESService) CreateSLMPolicy(policyId, name, schedule, repository, indices, expireAfter string, minCount, maxCount int) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if policyId == "" || schedule == "" || repository == "" {
+		return &types.ResultResp{Err: "策略ID、调度计划和仓库名称不能为空"}
+	}
+
+	body := map[string]any{
+		"schedule":   schedule,
+		"name":       name,
+		"repository": repository,
+		"config": map[string]any{
+			"indices":              []string{"*"},
+			"include_global_state": false,
+		},
+	}
+	if indices != "" {
+		body["config"].(map[string]any)["indices"] = strings.Split(indices, ",")
+	}
+
+	retention := map[string]any{}
+	if expireAfter != "" {
+		retention["expire_after"] = expireAfter
+	}
+	if minCount > 0 {
+		retention["min_count"] = minCount
+	}
+	if maxCount > 0 {
+		retention["max_count"] = maxCount
+	}
+	if len(retention) > 0 {
+		body["retention"] = retention
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetBody(body).
+		SetResult(&result).
+		Put(es.ConnectObj.Host + "/_slm/policy/" + url.PathEscape(policyId))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// DeleteSLMPolicy 删除SLM策略
+func (es *ESService) DeleteSLMPolicy(policyId string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if policyId == "" {
+		return &types.ResultResp{Err: "策略ID不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Delete(es.ConnectObj.Host + "/_slm/policy/" + url.PathEscape(policyId))
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
+// ExecuteSLMPolicy 手动执行SLM策略
+func (es *ESService) ExecuteSLMPolicy(policyId string) *types.ResultResp {
+	if es.ConnectObj.Host == "" {
+		return &types.ResultResp{Err: "请先选择一个集群"}
+	}
+	if policyId == "" {
+		return &types.ResultResp{Err: "策略ID不能为空"}
+	}
+
+	var result map[string]any
+	resp, err := es.Client.R().
+		SetResult(&result).
+		Post(es.ConnectObj.Host + "/_slm/policy/" + url.PathEscape(policyId) + "/_execute")
+	if err != nil {
+		return &types.ResultResp{Err: err.Error()}
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return &types.ResultResp{Err: string(resp.Body())}
+	}
+	return &types.ResultResp{Result: result}
+}
+
 // SearchResponse 定义 ES 搜索响应的结构
 type SearchResponse struct {
 	ScrollID string `json:"_scroll_id"`
