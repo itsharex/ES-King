@@ -440,15 +440,12 @@ const restoreStatusData = ref([])
 const onRestoreRepoChange = async (repo) => {
   restoreSnapOptions.value = []
   restoreForm.value.snapshot = null
-  // 从已有snapData中过滤该仓库的快照
+  // 如果数据为空则先获取，再统一过滤
+  if (snapData.value.length === 0) {
+    await getSnapshots()
+  }
   const filtered = snapData.value.filter(s => s.repository === repo && s.state === 'SUCCESS')
   restoreSnapOptions.value = filtered.map(s => ({label: s.snapshot, value: s.snapshot}))
-  if (restoreSnapOptions.value.length === 0) {
-    // 如果snapData为空，重新获取
-    await getSnapshots()
-    const filtered2 = snapData.value.filter(s => s.repository === repo && s.state === 'SUCCESS')
-    restoreSnapOptions.value = filtered2.map(s => ({label: s.snapshot, value: s.snapshot}))
-  }
 }
 
 const handleRestore = () => {

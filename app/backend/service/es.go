@@ -279,10 +279,13 @@ func (es *ESService) OpenCloseIndex(indexName, now string) *types.ResultResp {
 		return &types.ResultResp{Err: "请先选择一个集群"}
 	}
 	var result map[string]any
-	action := map[string]string{
+	action, ok := map[string]string{
 		"open":  "_close",
 		"close": "_open",
 	}[now]
+	if !ok {
+		return &types.ResultResp{Err: "无效的状态参数: " + now}
+	}
 	resp, err := es.Client.R().SetResult(&result).Post(es.ConnectObj.Host + "/" + indexName + "/" + action)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
@@ -413,13 +416,13 @@ func (es *ESService) Search(method, path string, body any) *types.ResultResp {
 	}
 	var result any
 
-	resp, err := es.Client.R().
-		SetBody(body).
-		SetResult(&result).
-		Execute(method, es.ConnectObj.Host+path)
+	req := es.Client.R().SetResult(&result)
+	if body != nil {
+		req = req.SetBody(body)
+	}
+	resp, err := req.Execute(method, es.ConnectObj.Host+path)
 	if err != nil {
 		return &types.ResultResp{Err: err.Error()}
-
 	}
 	if resp.StatusCode() != http.StatusOK {
 		return &types.ResultResp{Err: string(resp.Body())}
@@ -601,34 +604,51 @@ func (es *ESService) GetSnapshots() *types.ResultsResp {
 		return &types.ResultsResp{Err: err.Error()}
 	}
 
-	// 2. 遍历每个仓库获取其快照
-	var allSnapshots []any
-	for repoName := range repositories { // 遍历 map 的 key
-		var repoResult map[string]interface{}
-		resp, err := es.Client.R().SetResult(&repoResult).Get(es.ConnectObj.Host + "/_snapshot/" + repoName + "/_all")
-		if err != nil {
-			continue
-		}
-		if resp.StatusCode() != http.StatusOK {
-			continue
-		}
+	// 2. 并发遍历每个仓库获取其快照
+	var (
+		mu           sync.Mutex
+		allSnapshots []any
+		wg           sync.WaitGroup
+	)
+	for repoName := range repositories {
+		wg.Add(1)
+		go func(repo string) {
+			defer wg.Done()
+			var repoResult map[string]interface{}
+			resp, err := es.Client.R().SetResult(&repoResult).Get(es.ConnectObj.Host + "/_snapshot/" + repo + "/_all")
+			if err != nil || resp.StatusCode() != http.StatusOK {
+				return
+			}
 
-		// 3. 处理每个快照的数据
-		snapshots := repoResult["snapshots"].([]interface{})
-		for _, snap := range snapshots {
-			snapshot := snap.(map[string]interface{})
-			allSnapshots = append(allSnapshots, map[string]interface{}{
-				"snapshot":          snapshot["snapshot"],
-				"repository":        repoName,
-				"state":             strings.ToUpper(snapshot["state"].(string)),
-				"start_time":        snapshot["start_time"],
-				"end_time":          snapshot["end_time"],
-				"indices":           snapshot["indices"],
-				"total_shards":      snapshot["shards_total"],
-				"successful_shards": snapshot["shards_successful"],
-			})
-		}
+			// 3. 处理每个快照的数据（带安全类型断言）
+			snapshots, ok := repoResult["snapshots"].([]interface{})
+			if !ok {
+				return
+			}
+			var items []any
+			for _, snap := range snapshots {
+				snapshot, ok := snap.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				state, _ := snapshot["state"].(string)
+				items = append(items, map[string]interface{}{
+					"snapshot":          snapshot["snapshot"],
+					"repository":        repo,
+					"state":             strings.ToUpper(state),
+					"start_time":        snapshot["start_time"],
+					"end_time":          snapshot["end_time"],
+					"indices":           snapshot["indices"],
+					"total_shards":      snapshot["shards_total"],
+					"successful_shards": snapshot["shards_successful"],
+				})
+			}
+			mu.Lock()
+			allSnapshots = append(allSnapshots, items...)
+			mu.Unlock()
+		}(repoName)
 	}
+	wg.Wait()
 
 	return &types.ResultsResp{Results: allSnapshots}
 }
@@ -1032,7 +1052,13 @@ func (es *ESService) DownloadESIndex(index string, queryDSL string, filePath str
 		res.Err = fmt.Sprintf("创建文件失败: %v", err)
 		return res
 	}
-	defer file.Close() // 确保文件在函数结束时关闭
+	success := false
+	defer func() {
+		file.Close()
+		if !success {
+			os.Remove(filePath) // 下载失败时清理残缺文件
+		}
+	}()
 
 	// 构造初始搜索请求的 body，设置每批次大小为 10000
 	bodyStr := fmt.Sprintf(`{"size": 10000, "query": %s}`, queryDSL)
@@ -1108,5 +1134,6 @@ func (es *ESService) DownloadESIndex(index string, queryDSL string, filePath str
 	// 写入 JSON 数组的结尾
 	_, _ = writer.WriteString("]")
 
+	success = true
 	return res
 }
