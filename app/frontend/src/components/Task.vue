@@ -19,20 +19,18 @@
   <n-flex vertical>
 
     <n-flex align="center">
-      <h2>Task线程</h2>
+      <h2>{{ t('task.title') }}</h2>
       <n-button :render-icon="renderIcon(RefreshOutlined)" text @click="getData">refresh</n-button>
     </n-flex>
     <n-flex align="center">
-      <!-- 新增的查询功能 -->
-      <n-input v-model:value="taskIdFilter" placeholder="任务ID" style="width: 150px; margin-right: 10px" />
-      <n-input v-model:value="nodeFilter" placeholder="任务节点" style="width: 150px; margin-right: 10px" />
-      <n-input v-model:value="actionFilter" placeholder="任务行为" style="width: 150px; margin-right: 10px" />
-      <n-button  @click="applyFilters" style="margin-right: 10px">查询</n-button>
-      <!-- 原有的导出按钮 -->
-      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
+      <n-input v-model:value="taskIdFilter" :placeholder="t('task.filterTaskId')" style="width: 150px; margin-right: 10px" />
+      <n-input v-model:value="nodeFilter" :placeholder="t('task.filterNode')" style="width: 150px; margin-right: 10px" />
+      <n-input v-model:value="actionFilter" :placeholder="t('task.filterAction')" style="width: 150px; margin-right: 10px" />
+      <n-button @click="applyFilters" style="margin-right: 10px">{{ t('task.query') }}</n-button>
+      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">{{ t('task.exportCsv') }}</n-button>
     </n-flex>
 
-    <n-spin :show="loading" description="Connecting...">
+    <n-spin :show="loading" :description="t('app.connecting')">
       <n-data-table
           v-model:checked-row-keys="selectedRowKeys"
           :bordered="false"
@@ -48,21 +46,24 @@
   </n-flex>
 
   <n-drawer v-model:show="drawerVisible" style="width: 38.2%">
-    <n-drawer-content style="text-align: left;" title="结果">
+    <n-drawer-content style="text-align: left;" :title="t('common.result')">
       <n-code :code="json_data" language="json" show-line-numbers/>
     </n-drawer-content>
   </n-drawer>
 </template>
 
 <script setup>
-import {h, onMounted, ref} from "vue";
+import { useI18n } from 'vue-i18n'
+import {computed, h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
-import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useMessage} from 'naive-ui'
+import {NButton, NDataTable, NIcon, NTag, useMessage} from 'naive-ui'
 import {createCsvContent, download_file, formatDate, formattedJson, refColumns, renderIcon} from "../utils/common";
 import {DriveFileMoveTwotone, DeleteOutlined, RefreshOutlined} from "@vicons/material";
 import {
   GetTasks, CancelTasks
 } from "../../wailsjs/go/service/ESService";
+
+const { t } = useI18n()
 
 const drawerVisible = ref(false)
 const json_data = ref()
@@ -88,13 +89,11 @@ onMounted(() => {
   getData()
 })
 
-// 新增的过滤相关响应式数据
 const taskIdFilter = ref('')
 const nodeFilter = ref('')
 const actionFilter = ref('')
 const filteredData = ref([])
 
-// 新增的过滤方法
 const applyFilters = () => {
   filteredData.value = data.value.filter(item => {
     const matchesTaskId = !taskIdFilter.value || item.task_id.toLowerCase().includes(taskIdFilter.value.toLowerCase())
@@ -104,25 +103,19 @@ const applyFilters = () => {
   })
 }
 
-// 修改初始化获取数据的方法，使用过滤后的数据
 const getData = async () => {
   const res = await GetTasks()
-  console.log(res)
   if (res.err !== "") {
     message.error(res.err)
   } else {
-    console.log(res)
     data.value = res.results
-    // 初始化时也应用过滤
     applyFilters()
   }
-
 }
 
 const CancelTask = async (row) => {
   loading.value = true
   const res = await CancelTasks(row['task_id'])
-  console.log(res)
   if (res.err !== "") {
     message.error(res.err)
   } else {
@@ -149,59 +142,55 @@ const pagination = ref({
   itemCount: data.value.length
 })
 
-
-const columns = [
+const columns = computed(() => [
   {
-    title: '任务id',
+    title: t('task.colTaskId'),
     key: 'task_id',
     width: 80,
   },
   {
-    title: '父任务id',
+    title: t('task.colParentTaskId'),
     key: 'parent_task_id',
     width: 80,
   },
   {
-    title: '任务节点',
+    title: t('task.colNode'),
     key: 'node_name',
     width: 60,
   },
-  {title: 'IP', key: 'node_ip', width: 60,},
-  {title: '类型', key: 'type', width: 60,},
+  {title: t('task.colIp'), key: 'node_ip', width: 60,},
+  {title: t('task.colType'), key: 'type', width: 60,},
   {
-    title: '任务行为',
+    title: t('task.colAction'),
     key: 'action',
     width: 120,
     render: (row) => h(NTag, {type: "info"}, {default: () => row['action']}),
   },
   {
-    title: '开始时间',
+    title: t('task.colStartTime'),
     key: 'start_time_in_millis',
     width: 60,
     render(row) {
-      // 将毫秒时间戳转换为 Date 对象
       const date = new Date(row['start_time_in_millis']);
-      // 格式化日期时间
       return h('span', null, formatDate(date));
     },
   },
   {
-    title: '运行时间',
+    title: t('task.colRunTime'),
     key: 'running_time_in_nanos',
     width: 60,
   },
-  // 在 Vue 的模板中，布尔值会被转换为空字符串！！！
   {
-    title: '是否可取消',
+    title: t('task.colCancellable'),
     key: 'cancellable',
     width: 60,
     render: (row) => h(NTag,
         {type: row['cancellable'] ? "error" : "info"},
-        {default: () => row['cancellable'] ? '是' : '否'}
+        {default: () => row['cancellable'] ? t('task.yes') : t('task.no')}
     ),
   },
   {
-    title: '操作',
+    title: t('task.colActions'),
     key: 'actions',
     width: 60,
     render: (row) => {
@@ -214,22 +203,18 @@ const columns = [
             disabled: !row['cancellable'],
           },
           {
-            default: () => '终止', icon: () => h(NIcon, null, {default: () => h(DeleteOutlined)})
+            default: () => t('task.terminate'), icon: () => h(NIcon, null, {default: () => h(DeleteOutlined)})
           }
       )
     }
   }
-]
+])
 
-
-// 下载所有数据的 CSV 文件
 const downloadAllDataCsv = async () => {
-  const csvContent = createCsvContent(data.value, columns)
-  download_file(csvContent, '任务列表.csv', 'text/csv;charset=utf-8;')
+  const csvContent = createCsvContent(data.value, columns.value)
+  download_file(csvContent, t('task.csvFileName'), 'text/csv;charset=utf-8;')
 }
-
 </script>
-
 
 <style scoped>
 

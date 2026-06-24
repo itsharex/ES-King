@@ -26,7 +26,7 @@
           <n-tag v-if="subtitle" :type=title_tag>{{ subtitle }}</n-tag>
           <n-p v-else>{{ desc }}</n-p>
         </template>
-        健康：{{ title_tag }}
+        {{ t('header.health', { status: title_tag }) }}
       </n-tooltip>
     </template>
     <template #title>
@@ -34,15 +34,14 @@
     </template>
     <template #extra>
       <n-flex justify="flex-end" style="--wails-draggable:no-drag" class="right-section">
-        <n-button quaternary :focusable="false" @click="openUrl(qq_url)">技术交流群</n-button>
-        <!--        <n-button quaternary :focusable="false" @click="changeTheme" :render-icon="renderIcon(MoonOrSunnyOutline)"/>-->
+        <n-button quaternary :focusable="false" @click="openUrl(qq_url)">{{ t('header.techGroup') }}</n-button>
 
         <n-tooltip placement="bottom" trigger="hover">
           <template #trigger>
             <n-button :render-icon="renderIcon(HouseTwotone)" quaternary
                       @click="openUrl(update_url)"/>
           </template>
-          <span>主页</span>
+          <span>{{ t('header.homePage') }}</span>
         </n-tooltip>
 
         <n-tooltip placement="bottom" trigger="hover">
@@ -50,7 +49,7 @@
             <n-button quaternary :focusable="false" :loading="update_loading" @click="checkForUpdates"
                       :render-icon="renderIcon(SystemUpdateAltSharp)"/>
           </template>
-          <span>检查版本：{{ version.tag_name }} {{ check_msg }}</span>
+          <span>{{ t('header.checkVersion', { version: version.tag_name, msg: check_msg }) }}</span>
         </n-tooltip>
 
         <n-button quaternary :focusable="false" @click="minimizeWindow" :render-icon="renderIcon(RemoveOutlined)"/>
@@ -66,6 +65,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import {NAvatar, NButton, NFlex, useMessage} from 'naive-ui'
 import {
   SystemUpdateAltSharp,
@@ -83,9 +83,8 @@ import {openUrl, renderIcon} from "../utils/common";
 import {GetVersion, GetAppName} from "../../wailsjs/go/config/AppConfig";
 import emitter from "../utils/eventBus";
 
-// defineProps(['options', 'value']);
+const { t } = useI18n()
 
-// const MoonOrSunnyOutline = shallowRef(WbSunnyOutlined)
 const isMaximized = ref(false);
 const title_tag = ref("success");
 const check_msg = ref("");
@@ -95,14 +94,13 @@ const update_url = "https://github.com/Bronya0/ES-King/releases"
 const qq_url = "https://qm.qq.com/cgi-bin/qm/qr?k=pDqlVFyLMYEEw8DPJlRSBN27lF8qHV2v&jump_from=webapi&authKey=Wle/K0ARM1YQWlpn6vvfiZuMedy2tT9BI73mUvXVvCuktvi0fNfmNR19Jhyrf2Nz"
 
 const update_loading = ref(false)
-// let theme = lightTheme
 
 let version = ref({
   tag_name: "",
   body: "",
 })
 
-const desc = "更人性化的ES GUI "
+const desc = t('header.desc')
 const subtitle = ref("")
 
 const notification = useNotification()
@@ -114,12 +112,12 @@ const checkForUpdates = async () => {
     const v = await GetVersion()
     const resp = await CheckUpdate()
     if (!resp) {
-      message.error("无法连接github，检查更新失败")
+      message.error(t('header.checkFailed'))
     } else if (resp.tag_name !== v) {
-      check_msg.value = '发现新版本 ' + resp.tag_name
+      check_msg.value = t('header.newVersionFound', { tag: resp.tag_name })
       version.value.body = resp.body
       const n = notification.success({
-        title: '发现新版本: ' + resp.name,
+        title: t('header.newVersionFound', { tag: resp.name }),
         description: resp.body,
         action: () =>
             h(NFlex, {justify: "flex-end"}, () => [
@@ -130,7 +128,7 @@ const checkForUpdates = async () => {
                     secondary: true,
                     onClick: () => BrowserOpenURL(update_url),
                   },
-                  () => "立即下载",
+                  () => t('header.downloadNow'),
               ),
               h(
                   NButton,
@@ -140,7 +138,7 @@ const checkForUpdates = async () => {
                       n.destroy()
                     },
                   },
-                  () => "取消",
+                  () => t('header.cancel'),
               ),
             ]),
         onPositiveClick: () => BrowserOpenURL(update_url),
@@ -157,22 +155,17 @@ onMounted(async () => {
 
   app_name.value = await GetAppName()
 
-  // const config = await GetConfig()
-  // MoonOrSunnyOutline.value = config.theme === lightTheme.name ? WbSunnyOutlined : NightlightRoundFilled
   const v = await GetVersion()
   version.value.tag_name = v
   subtitle.value = desc + " " + v
   await checkForUpdates()
-
 })
 
 const selectNode = (node) => {
-  subtitle.value = "当前集群：【" + node.name + "】"
+  subtitle.value = t('header.currentCluster', { name: node.name })
 }
 
-// 动态修改title的类型
 const changeTitleType = (type) => {
-  console.log(type)
   title_tag.value = type
 }
 
@@ -189,18 +182,11 @@ const resizeWindow = () => {
     WindowUnmaximise();
     MaxMinIcon.value = CropSquareFilled;
   }
-  console.log(isMaximized.value)
-
 }
 
 const closeWindow = () => {
   Quit()
 }
-// const changeTheme = () => {
-//   MoonOrSunnyOutline.value = MoonOrSunnyOutline.value === NightlightRoundFilled ? WbSunnyOutlined : NightlightRoundFilled;
-//   theme = MoonOrSunnyOutline.value === NightlightRoundFilled ? darkTheme : lightTheme
-//   emitter.emit('update_theme', theme)
-// }
 </script>
 
 <style scoped>

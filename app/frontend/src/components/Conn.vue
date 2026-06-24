@@ -19,11 +19,11 @@
   <div>
     <n-flex vertical>
       <n-flex align="center">
-        <h2>集群</h2>
-        <n-text>共有 {{ esNodes.length }} 个</n-text>
-        <n-button @click="addNewNode" :render-icon="renderIcon(AddFilled)">添加集群</n-button>
+        <h2>{{ t('conn.title') }}</h2>
+        <n-text>{{ t('common.total', { count: esNodes.length }) }}</n-text>
+        <n-button @click="addNewNode" :render-icon="renderIcon(AddFilled)">{{ t('conn.addCluster') }}</n-button>
       </n-flex>
-      <n-spin :show="spin_loading" description="Connecting...">
+      <n-spin :show="spin_loading" :description="t('app.connecting')">
 
         <n-grid :x-gap="12" :y-gap="12" :cols="4">
           <n-gi v-for="node in esNodes" :key="node.id">
@@ -32,20 +32,20 @@
               <template #header-extra>
                 <n-space>
                   <n-button @click.stop="editNode(node)" size="small">
-                    编辑
+                    {{ t('common.edit') }}
                   </n-button>
-                  <n-popconfirm @positive-click="deleteNode(node.id)" negative-text="取消" positive-text="确定">
+                  <n-popconfirm @positive-click="deleteNode(node.id)" :negative-text="t('common.cancel')" :positive-text="t('common.confirm')">
                     <template #trigger>
                       <n-button @click.stop size="small">
-                        删除
+                        {{ t('common.delete') }}
                       </n-button>
                     </template>
-                    确定删除吗？
+                    {{ t('conn.deleteConfirm') }}
                   </n-popconfirm>
                 </n-space>
               </template>
               <n-descriptions :column="1" label-placement="left">
-                <n-descriptions-item label="主机">
+                <n-descriptions-item :label="t('conn.host')">
                   {{ node.host }}
                 </n-descriptions-item>
               </n-descriptions>
@@ -61,48 +61,47 @@
             ref="formRef"
             :model="currentNode"
             :rules="{
-              name: {required: true, message: '请输入昵称', trigger: 'blur'},
-              host: {required: true, message: '请输入主机地址', trigger: 'blur'},
-              port: {required: true, type: 'number', message: '请输入有效的端口号', trigger: 'blur'},
+              name: {required: true, message: t('conn.inputNickname'), trigger: 'blur'},
+              host: {required: true, message: t('conn.inputHost'), trigger: 'blur'},
             }"
             label-placement="top"
             style="text-align: left;"
         >
-          <n-form-item label="昵称" path="name">
-            <n-input v-model:value="currentNode.name" placeholder="输入节点名称"/>
+          <n-form-item :label="t('conn.nickname')" path="name">
+            <n-input v-model:value="currentNode.name" :placeholder="t('conn.inputNickname')"/>
           </n-form-item>
-          <n-form-item label="协议://主机:端口" path="host">
-            <n-input v-model:value="currentNode.host" placeholder="输入协议://主机:端口"/>
+          <n-form-item :label="t('conn.host')" path="host">
+            <n-input v-model:value="currentNode.host" :placeholder="t('conn.inputHost')"/>
           </n-form-item>
-          <n-form-item label="用户名" path="username">
-            <n-input v-model:value="currentNode.username" placeholder="输入用户名"/>
+          <n-form-item :label="t('conn.username')" path="username">
+            <n-input v-model:value="currentNode.username" :placeholder="t('conn.inputUsername')"/>
           </n-form-item>
-          <n-form-item label="密码" path="password">
+          <n-form-item :label="t('conn.password')" path="password">
             <n-input
                 v-model:value="currentNode.password"
                 type="password"
-                placeholder="输入密码"
+                :placeholder="t('conn.inputPassword')"
             />
           </n-form-item>
 
-          <n-form-item label="使用 SSL" path="useSSL">
+          <n-form-item :label="t('conn.useSSL')" path="useSSL">
             <n-switch :round="false" v-model:value="currentNode.useSSL"/>
           </n-form-item>
 
-          <n-form-item label="跳过 SSL 验证" path="skipSSLVerify">
+          <n-form-item :label="t('conn.skipSSLVerify')" path="skipSSLVerify">
             <n-switch :round="false" v-model:value="currentNode.skipSSLVerify"/>
           </n-form-item>
 
-          <n-form-item label="CA 证书" path="caCert">
-            <n-input v-model:value="currentNode.caCert" type="textarea" placeholder="输入 CA 证书内容"/>
+          <n-form-item :label="t('conn.caCert')" path="caCert">
+            <n-input v-model:value="currentNode.caCert" type="textarea" :placeholder="t('conn.inputCaCert')"/>
           </n-form-item>
 
         </n-form>
         <template #footer>
           <n-space justify="end">
-            <n-button @click="test_connect" :loading="test_connect_loading">连接测试</n-button>
-            <n-button @click="showEditDrawer = false">取消</n-button>
-            <n-button type="primary" @click="saveNode">保存</n-button>
+            <n-button @click="test_connect" :loading="test_connect_loading">{{ t('conn.testConnection') }}</n-button>
+            <n-button @click="showEditDrawer = false">{{ t('common.cancel') }}</n-button>
+            <n-button type="primary" @click="saveNode">{{ t('common.save') }}</n-button>
           </n-space>
         </template>
       </n-drawer-content>
@@ -111,6 +110,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import {computed, onMounted, ref} from 'vue'
 import {useMessage} from 'naive-ui'
 import {renderIcon} from "../utils/common";
@@ -119,6 +119,7 @@ import emitter from "../utils/eventBus";
 import {SetConnect, TestClient} from "../../wailsjs/go/service/ESService";
 import {GetConfig, SaveConfig} from "../../wailsjs/go/config/AppConfig";
 
+const { t } = useI18n()
 
 const message = useMessage()
 
@@ -139,7 +140,7 @@ const isEditing = ref(false)
 const spin_loading = ref(false)
 const test_connect_loading = ref(false)
 
-const drawerTitle = computed(() => isEditing.value ? '编辑连接' : '添加连接')
+const drawerTitle = computed(() => isEditing.value ? t('conn.editTitle') : t('conn.addTitle'))
 
 const formRef = ref(null)
 
@@ -189,23 +190,20 @@ const saveNode = async () => {
       showEditDrawer.value = false
 
       await refreshNodeList()
-      message.success('保存成功')
+      message.success(t('common.saveSuccess'))
     } else {
-      message.error('请填写所有必填字段')
+      message.error(t('common.fillRequired'))
     }
   })
 }
 
 const deleteNode = async (id) => {
-  console.log(esNodes.value)
-  console.log(id)
   esNodes.value = esNodes.value.filter(node => node.id !== id)
-  console.log(esNodes.value)
   const config = await GetConfig()
   config.connects = esNodes.value
   await SaveConfig(config)
   await refreshNodeList()
-  message.success('删除成功')
+  message.success(t('common.saveSuccess'))
 }
 
 const test_connect = async () => {
@@ -217,9 +215,9 @@ const test_connect = async () => {
         const node = currentNode.value
         const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
         if (res !== "") {
-          message.error("连接失败：" + res)
+          message.error(t('conn.connectFailed', { msg: res }))
         } else {
-          message.success('连接成功')
+          message.success(t('conn.connectSuccess'))
         }
       } catch (e) {
         message.error(e.message)
@@ -227,22 +225,20 @@ const test_connect = async () => {
       test_connect_loading.value = false
 
     } else {
-      message.error('请填写所有必填字段')
+      message.error(t('common.fillRequired'))
     }
   })
 }
 const selectNode = async (node) => {
-  // 这里实现切换菜单的逻辑
-  console.log('选中节点:', node)
   spin_loading.value = true
 
   try {
     const res = await TestClient(node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
     if (res !== "") {
-      message.error("连接失败：" + res)
+      message.error(t('conn.connectFailed', { msg: res }))
     } else {
       await SetConnect(node.name, node.host, node.username, node.password, node.caCert, node.useSSL, node.skipSSLVerify)
-      message.success('连接成功')
+      message.success(t('conn.connectSuccess'))
       emitter.emit('menu_select', "节点")
       emitter.emit('selectNode', node)
     }

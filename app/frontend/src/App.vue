@@ -19,7 +19,8 @@
   <n-config-provider
       :theme="Theme"
       :hljs="hljs"
-      :locale="zhCN" :date-locale="dateZhCN"
+      :locale="naiveLocale"
+      :date-locale="naiveDateLocale"
   >
     <!--https://www.naiveui.com/zh-CN/os-theme/components/layout-->
     <n-message-provider container-style=" word-break: break-all;">
@@ -64,10 +65,17 @@
 </template>
 
 <script setup>
-import {onMounted, ref, shallowRef} from 'vue'
+import {computed, onMounted, ref, shallowRef, watch} from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   darkTheme,
   lightTheme,
+  zhCN,
+  dateZhCN,
+  enUS,
+  dateEnUS,
+  jaJP,
+  dateJaJP,
   NConfigProvider,
   NLayout,
   NLayoutContent,
@@ -97,11 +105,21 @@ import {
 } from '@vicons/material'
 import hljs from 'highlight.js/lib/core'
 import json from 'highlight.js/lib/languages/json'
-import { zhCN, dateZhCN } from 'naive-ui'
+
+const { t, locale } = useI18n()
 
 let headerClass = shallowRef('lightTheme')
 let Theme = shallowRef(lightTheme)
 
+// Naive UI locale 映射表
+const naiveLocaleMap = {
+  'zh-CN': { locale: zhCN, dateLocale: dateZhCN },
+  'en':    { locale: enUS,  dateLocale: dateEnUS },
+  'ja':    { locale: jaJP,  dateLocale: dateJaJP },
+}
+
+const naiveLocale = computed(() => naiveLocaleMap[locale.value]?.locale || zhCN)
+const naiveDateLocale = computed(() => naiveLocaleMap[locale.value]?.dateLocale || dateZhCN)
 
 hljs.registerLanguage('json', json)
 
@@ -111,85 +129,104 @@ onMounted(async () => {
   // 设置主题
   themeChange(loadedConfig.theme)
   // 语言切换
-  // handleLanguageChange(loadedConfig.language)
+  if (loadedConfig.language && ['zh-CN', 'en', 'ja'].includes(loadedConfig.language)) {
+    locale.value = loadedConfig.language
+  }
 
   // =====================注册事件监听=====================
   // 主题切换
   emitter.on('update_theme', themeChange)
   // 菜单切换
   emitter.on('menu_select', handleMenuSelect)
+  // 语言切换
+  emitter.on('change_language', (lang) => {
+    if (['zh-CN', 'en', 'ja'].includes(lang)) {
+      locale.value = lang
+    }
+  })
 })
 
-
-// 左侧菜单
-const sideMenuOptions = [
+// 侧边栏菜单 - 使用 computed 响应语言变化
+const sideMenuOptions = computed(() => [
   {
-    label: '集群',
+    label: t('menu.cluster'),
     key: '集群',
     icon: renderIcon(HiveOutlined),
     component: Conn,
   },
   {
-    label: '节点',
+    label: t('menu.nodes'),
     key: '节点',
     icon: renderIcon(AllOutOutlined),
     component: Nodes,
   },
   {
-    label: '索引',
+    label: t('menu.index'),
     key: '索引',
     icon: renderIcon(LibraryBooksOutlined),
     component: Index,
   },
   {
-    label: 'REST',
+    label: t('menu.rest'),
     key: 'REST',
     icon: renderIcon(ApiOutlined),
     component: Rest,
   },
   {
-    label: 'Task',
+    label: t('menu.task'),
     key: 'Task',
     icon: renderIcon(TaskAltFilled),
     component: Task,
   },
   {
-    label: '健康',
+    label: t('menu.health'),
     key: '健康',
     icon: renderIcon(FavoriteTwotone),
     component: Health,
   },
   {
-    label: '指标',
+    label: t('menu.metrics'),
     key: '指标',
     icon: renderIcon(BarChartOutlined),
     component: Core,
   },
   {
-    label: '快照',
+    label: t('menu.snapshot'),
     key: '快照',
     icon: renderIcon(AddAPhotoTwotone),
     component: Snapshot,
   },
   {
-    label: '设置',
+    label: t('menu.settings'),
     key: '设置',
     icon: renderIcon(SettingsSuggestOutlined),
     component: Settings
   },
   {
-    label: "关于",
+    label: t('menu.about'),
     key: "about",
     icon: renderIcon(InfoOutlined),
     component: About
   },
-]
-const activeItem = shallowRef(sideMenuOptions[0])
+])
+
+const activeItem = shallowRef(sideMenuOptions.value[0])
+
+// 监听语言变化更新 activeItem 的 label
+watch(sideMenuOptions, (newOptions) => {
+  const currentKey = activeItem.value?.key
+  if (currentKey) {
+    const found = newOptions.find(item => item.key === currentKey)
+    if (found) {
+      activeItem.value = found
+    }
+  }
+})
 
 // 切换菜单
 function handleMenuSelect(key) {
   // 根据key寻找item
-  activeItem.value = sideMenuOptions.find(item => item.key === key)
+  activeItem.value = sideMenuOptions.value.find(item => item.key === key)
 }
 
 // 主题切换
@@ -197,7 +234,6 @@ function themeChange(newTheme) {
   Theme.value = newTheme === lightTheme.name ? lightTheme : darkTheme
   headerClass = newTheme === lightTheme.name ? "lightTheme" : "darkTheme"
 }
-
 
 </script>
 

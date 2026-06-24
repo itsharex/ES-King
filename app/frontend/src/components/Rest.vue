@@ -18,8 +18,8 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2>REST</h2>
-      <n-text>一个 Restful 调试工具，支持格式化/DSL提示补全/示例/下载/历史缓存</n-text>
+      <h2>{{ t('rest.title') }}</h2>
+      <n-text>{{ t('rest.desc') }}</n-text>
     </n-flex>
     <n-flex align="center">
       <n-select v-model:value="method" :options="methodOptions" style="width: 120px;"/>
@@ -27,10 +27,10 @@
       <div :id="ace_editorId" class="ace-editor" style="height:34px;min-width: 46.8%;text-align: left;
         line-height: 34px;box-sizing: border-box;"/>
 
-      <n-button :loading="send_loading" :render-icon="renderIcon(SendSharp)" @click="sendRequest">Send</n-button>
-      <n-button :render-icon="renderIcon(HistoryOutlined)" @click="showHistoryDrawer = true">历史记录</n-button>
-      <n-button :render-icon="renderIcon(MenuBookTwotone)" @click="showDrawer = true">ES查询示例</n-button>
-      <n-button :render-icon="renderIcon(ArrowDownwardOutlined)" @click="exportJson">导出结果</n-button>
+      <n-button :loading="send_loading" :render-icon="renderIcon(SendSharp)" @click="sendRequest">{{ t('rest.send') }}</n-button>
+      <n-button :render-icon="renderIcon(HistoryOutlined)" @click="showHistoryDrawer = true">{{ t('rest.history') }}</n-button>
+      <n-button :render-icon="renderIcon(MenuBookTwotone)" @click="showDrawer = true">{{ t('rest.examples') }}</n-button>
+      <n-button :render-icon="renderIcon(ArrowDownwardOutlined)" @click="exportJson">{{ t('rest.exportResult') }}</n-button>
     </n-flex>
     <n-grid :cols="2" x-gap="20">
       <n-grid-item>
@@ -43,9 +43,9 @@
       </n-grid-item>
     </n-grid>
   </n-flex>
-  <!--  示例-->
+
   <n-drawer v-model:show="showDrawer" placement="right" style="width: 38.2%">
-    <n-drawer-content style="text-align: left;" title="ES DSL查询示例">
+    <n-drawer-content style="text-align: left;" :title="t('rest.queryExamples')">
       <n-flex vertical>
         <n-collapse>
           <n-collapse-item name="1" title="1. Term查询">
@@ -114,12 +114,11 @@
 
   <!-- 历史记录抽屉 -->
   <n-drawer v-model:show="showHistoryDrawer" style="width: 38.2%">
-    <n-drawer-content title="查询历史记录">
-      <!-- 搜索框 -->
+    <n-drawer-content :title="t('rest.history')">
       <n-input
           v-model:value="searchText"
           clearable
-          placeholder="搜索历史记录，同时支持method、path、dsl"
+          :placeholder="t('rest.searchHistory')"
           style="margin-bottom: 12px"
       >
         <template #prefix>
@@ -129,7 +128,6 @@
         </template>
       </n-input>
 
-      <!-- 历史记录列表 -->
       <n-list>
         <n-pagination
             v-model:page="currentPage"
@@ -163,6 +161,7 @@
 
 <script setup>
 
+import { useI18n } from 'vue-i18n'
 import {NButton, NGrid, NGridItem, NInput, NSelect, useMessage} from 'naive-ui'
 import {computed, nextTick, onMounted, ref} from "vue";
 import {Search} from "../../wailsjs/go/service/ESService";
@@ -180,6 +179,8 @@ import 'ace-builds/src-noconflict/theme-textmate'
 import 'ace-builds/src-noconflict/theme-monokai'
 import ace from 'ace-builds';
 
+const { t } = useI18n()
+
 const message = useMessage()
 const method = ref('POST')
 const searchText = ref('')
@@ -189,7 +190,6 @@ const response = ref()
 const send_loading = ref(false)
 const showDrawer = ref(false)
 const showHistoryDrawer = ref(false)
-// 状态管理
 const currentPage = ref(1)
 const pageSize = ref(10)
 
@@ -202,60 +202,59 @@ const methodOptions = [
   {label: 'OPTIONS', value: 'OPTIONS'},
   {label: 'DELETE', value: 'DELETE'}
 ]
-// 自定义自动补全关键词
 const keywords = [
-  {word: 'query', meta: 'keyword'},           // 查询入口
-  {word: 'bool', meta: 'keyword'},            // 布尔查询
-  {word: 'filter', meta: 'keyword'},          // 过滤条件
-  {word: 'must', meta: 'keyword'},            // 必须匹配
-  {word: 'should', meta: 'keyword'},          // 应该匹配
-  {word: 'must_not', meta: 'keyword'},        // 必须不匹配
-  {word: 'term', meta: 'keyword'},            // 精确匹配查询
-  {word: 'terms', meta: 'keyword'},           // 多值精确匹配查询
-  {word: 'match', meta: 'keyword'},           // 全文匹配查询
-  {word: 'match_phrase', meta: 'keyword'},    // 短语匹配查询
-  {word: 'multi_match', meta: 'keyword'},     // 多字段匹配查询
-  {word: 'range', meta: 'keyword'},           // 范围查询
-  {word: 'exists', meta: 'keyword'},          // 检查字段是否存在
-  {word: 'prefix', meta: 'keyword'},          // 前缀查询
-  {word: 'wildcard', meta: 'keyword'},        // 通配符查询
-  {word: 'regexp', meta: 'keyword'},          // 正则表达式查询
-  {word: 'aggs', meta: 'keyword'},            // 聚合入口
-  {word: 'aggregations', meta: 'keyword'},    // 聚合入口（aggs 的完整形式）
-  {word: 'terms', meta: 'aggregation'},       // 聚合中的 terms（按字段分组）
-  {word: 'sum', meta: 'aggregation'},         // 求和聚合
-  {word: 'avg', meta: 'aggregation'},         // 平均值聚合
-  {word: 'min', meta: 'aggregation'},         // 最小值聚合
-  {word: 'max', meta: 'aggregation'},         // 最大值聚合
-  {word: 'stats', meta: 'aggregation'},       // 统计聚合
-  {word: 'cardinality', meta: 'aggregation'}, // 去重计数聚合
-  {word: 'histogram', meta: 'aggregation'},   // 直方图聚合
-  {word: 'date_histogram', meta: 'aggregation'}, // 日期直方图聚合
-  {word: 'top_hits', meta: 'aggregation'},    // 返回顶部命中文档
-  {word: 'size', meta: 'keyword'},            // 返回结果数量
-  {word: 'from', meta: 'keyword'},            // 分页起始位置
-  {word: 'sort', meta: 'keyword'},            // 排序
-  {word: 'track_total_hits', meta: 'keyword'}, // 跟踪总命中数
-  {word: '_source', meta: 'keyword'},         // 控制返回的字段
-  {word: 'fields', meta: 'keyword'},          // 指定返回字段
-  {word: 'script', meta: 'keyword'},          // 脚本字段
-  {word: 'gte', meta: 'range'},               // 大于等于（范围查询）
-  {word: 'lte', meta: 'range'},               // 小于等于（范围查询）
-  {word: 'gt', meta: 'range'},                // 大于（范围查询）
-  {word: 'lt', meta: 'range'},                // 小于（范围查询）
-  {word: 'boost', meta: 'keyword'},           // 提升权重
-  {word: 'minimum_should_match', meta: 'keyword'}, // should 最小匹配数
-  {word: 'nested', meta: 'keyword'},          // 嵌套对象查询
-  {word: 'path', meta: 'keyword'},            // 嵌套路径
-  {word: 'score_mode', meta: 'keyword'},      // 嵌套查询评分模式
-  {word: 'bucket', meta: 'aggregation'},      // 聚合桶
-  {word: 'order', meta: 'keyword'},           // 排序顺序
-  {word: 'asc', meta: 'sort'},                // 升序
-  {word: 'desc', meta: 'sort'}                // 降序
+  {word: 'query', meta: 'keyword'},
+  {word: 'bool', meta: 'keyword'},
+  {word: 'filter', meta: 'keyword'},
+  {word: 'must', meta: 'keyword'},
+  {word: 'should', meta: 'keyword'},
+  {word: 'must_not', meta: 'keyword'},
+  {word: 'term', meta: 'keyword'},
+  {word: 'terms', meta: 'keyword'},
+  {word: 'match', meta: 'keyword'},
+  {word: 'match_phrase', meta: 'keyword'},
+  {word: 'multi_match', meta: 'keyword'},
+  {word: 'range', meta: 'keyword'},
+  {word: 'exists', meta: 'keyword'},
+  {word: 'prefix', meta: 'keyword'},
+  {word: 'wildcard', meta: 'keyword'},
+  {word: 'regexp', meta: 'keyword'},
+  {word: 'aggs', meta: 'keyword'},
+  {word: 'aggregations', meta: 'keyword'},
+  {word: 'terms', meta: 'aggregation'},
+  {word: 'sum', meta: 'aggregation'},
+  {word: 'avg', meta: 'aggregation'},
+  {word: 'min', meta: 'aggregation'},
+  {word: 'max', meta: 'aggregation'},
+  {word: 'stats', meta: 'aggregation'},
+  {word: 'cardinality', meta: 'aggregation'},
+  {word: 'histogram', meta: 'aggregation'},
+  {word: 'date_histogram', meta: 'aggregation'},
+  {word: 'top_hits', meta: 'aggregation'},
+  {word: 'size', meta: 'keyword'},
+  {word: 'from', meta: 'keyword'},
+  {word: 'sort', meta: 'keyword'},
+  {word: 'track_total_hits', meta: 'keyword'},
+  {word: '_source', meta: 'keyword'},
+  {word: 'fields', meta: 'keyword'},
+  {word: 'script', meta: 'keyword'},
+  {word: 'gte', meta: 'range'},
+  {word: 'lte', meta: 'range'},
+  {word: 'gt', meta: 'range'},
+  {word: 'lt', meta: 'range'},
+  {word: 'boost', meta: 'keyword'},
+  {word: 'minimum_should_match', meta: 'keyword'},
+  {word: 'nested', meta: 'keyword'},
+  {word: 'path', meta: 'keyword'},
+  {word: 'score_mode', meta: 'keyword'},
+  {word: 'bucket', meta: 'aggregation'},
+  {word: 'order', meta: 'keyword'},
+  {word: 'asc', meta: 'sort'},
+  {word: 'desc', meta: 'sort'}
 ];
 
 const selectNode = (node) => {
-  response.value.setText('{"tip": "响应结果，支持搜索"}')
+  response.value.setText(t('rest.responseResult'))
   send_loading.value = false
 }
 
@@ -277,7 +276,7 @@ onMounted(async () => {
       mainMenuBar: false,
       statusBar: false,
       showPrintMargin: false,
-      placeholder: '请求body'
+      placeholder: t('rest.requestBody')
     });
     response.value = new JSONEditor(document.getElementById('json_view'), {
       mode: 'code',
@@ -293,10 +292,8 @@ onMounted(async () => {
       enableLiveAutocompletion: true
     })
 
-    // 自定义补全器
     const customCompleter = {
       getCompletions: (editor, session, pos, prefix, callback) => {
-        // 根据前缀过滤关键词
         const suggestions = keywords
             .filter(k => k.word.startsWith(prefix))
             .map(k => ({
@@ -308,25 +305,21 @@ onMounted(async () => {
       }
     };
 
-    // 添加自定义补全器
     editor.value.aceEditor.completers = [customCompleter];
 
-    response.value.setText('{"tip": "响应结果，支持搜索"}')
+    response.value.setText(t('rest.responseResult'))
   }
   await read_history()
 
   await nextTick()
-  initAce("输入rest api，以/开头；查询请用POST请求；GET不会携带body", loadedConfig.theme)
+  initAce(t('rest.enterApi'), loadedConfig.theme)
   await setAceIndex()
 
 });
 
-
-// =============== ace编辑器 =================
 const ace_editor = ref(null)
 const ace_editorId = "ace-editor"
 
-// 初始化 Ace 编辑器
 const initAce = (defaultValue, theme) => {
   ace.config.set('basePath', '/node_modules/ace-builds/src-noconflict')
 
@@ -354,72 +347,25 @@ const setAceValue = (newValue) => {
   ace_editor.value?.setValue(newValue, -1)
 }
 
-// 定义提示词数据
-// const completions = [
-// {
-//   caption: "console.log", // 用户看到的名称（可选，如果和 value 相同可以省略）
-//   value: "console.log(${1:value})", // 实际插入的值
-//   score: 100, // 权重（越高越靠前）
-//   meta: "JavaScript" // 分类（如 "JavaScript"、"CSS"、"Custom"）
-// },
-// ];
 const setAceCompleter = (completions) => {
   const customCompleter = {
     getCompletions: function (editor, session, pos, prefix, callback) {
-      callback(null, completions); // 返回提示词
+      callback(null, completions);
     }
   };
-  // 添加到编辑器的补全器列表
-  ace_editor.value.completers = [customCompleter] // 覆盖默认补全器（不推荐）
-  // ace_editor.value.completers.push(customCompleter); // 追加自定义补全器（推荐）
+  ace_editor.value.completers = [customCompleter]
 }
-// ================ ace编辑器 完结 =================
 
 const setAceIndex = async () => {
   const keywords = [
-    '_search',         // 搜索API
-    '_cluster',        // 集群API
-    '_cat',            // Cat API
-    '_nodes',          // 节点信息
-    '_doc',            // 文档操作
-    '_tasks',          // 任务管理
-    '_flush',          // 刷新索引
-    '_refresh',        // 刷新索引数据
-    '_mapping',        // 获取/设置映射
-    '_settings',       // 索引设置
-    '_stats',          // 统计信息
-    '_bulk',           // 批量操作
-    '_update',         // 更新文档
-    '_msearch',        // 多搜索
-    '_alias',          // 别名操作
-    '_rollover',       // 滚动索引
-    '_reindex',        // 重新索引
-    '_snapshot',       // 快照操作
-    '_forcemerge',     // 强制合并段
-    '_indices',        // 索引操作（补充）
-    '_count',          // 计数API（补充）
-    '_validate',       // 查询验证（补充）
-    '_explain',        // 解释查询（补充）
-    '_field_caps',     // 字段能力（补充）
-    '_search_shards',  // 搜索分片信息（补充）
-    '_analyze',        // 分析文本（补充）
-    'pretty',                   // 美化输出
-    'human',                    // 人类可读格式
-    'master_timeout',           // 主节点超时
-    'ignore_unavailable',       // 忽略不可用索引
-    'allow_no_indices',         // 允许无索引
-    'expand_wildcards',         // 通配符扩展
-    'wait_for_active_shards',   // 等待活跃分片
-    'wait_for_completion',      // 等待操作完成
-    'format=json',              // 指定返回格式（通常是单独使用）
-    'size',                    // 返回文档数（补充）
-    'from',                    // 分页起始（补充）
-    'q',                       // 查询字符串（补充）
-    'scroll',                  // 滚动查询（补充）
-    'routing',                 // 路由值（补充）
-    'preference',              // 查询偏好（补充）
-    'timeout',                 // 超时时间（补充）
-    'filter_path',             // 过滤返回字段（补充）
+    '_search', '_cluster', '_cat', '_nodes', '_doc', '_tasks', '_flush', '_refresh',
+    '_mapping', '_settings', '_stats', '_bulk', '_update', '_msearch', '_alias',
+    '_rollover', '_reindex', '_snapshot', '_forcemerge', '_indices', '_count',
+    '_validate', '_explain', '_field_caps', '_search_shards', '_analyze',
+    'pretty', 'human', 'master_timeout', 'ignore_unavailable', 'allow_no_indices',
+    'expand_wildcards', 'wait_for_active_shards', 'wait_for_completion',
+    'format=json', 'size', 'from', 'q', 'scroll', 'routing', 'preference',
+    'timeout', 'filter_path',
   ];
   let completions = [];
   for (let k of keywords) {
@@ -439,38 +385,35 @@ const setAceIndex = async () => {
     setAceCompleter(completions)
   }
 }
+
 const read_history = async () => {
-  console.log("read_history")
   try {
     history.value = await GetHistory()
   } catch (e) {
     message.error(e.message)
   }
 }
+
 const write_history = async () => {
-  console.log("write_history")
   try {
-    // 从左侧插入history
     history.value.unshift({
       timestamp: Date.now(),
       method: method.value,
       path: getAceValue(),
       dsl: editor.value.getText()
     })
-    // 只保留100条
     if (history.value.length > 100) {
       history.value = history.value.slice(0, 100)
     }
     const res = await SaveHistory(history.value)
     if (res !== "") {
-      message.error("保存查询失败：" + res)
+      message.error(t('rest.saveFailed', { msg: res }))
     }
   } catch (e) {
     message.error(e.message)
   }
 }
 
-// 填充历史记录
 function handleHistoryClick(m, p, d) {
   method.value = m
   setAceValue(p)
@@ -483,7 +426,6 @@ function themeChange(newTheme) {
   editor.value.aceEditor.setTheme(new_editor_theme)
   response.value.aceEditor.setTheme(new_editor_theme)
   ace_editor.value?.setTheme(new_editor_theme)
-
 }
 
 const formatDSL = (dsl) => {
@@ -496,7 +438,6 @@ const formatDSL = (dsl) => {
 
 const sendRequest = async () => {
   send_loading.value = true
-  // 清空response
   response.value.set({})
   let path = getAceValue()
   if (!path.startsWith('/')) {
@@ -504,8 +445,6 @@ const sendRequest = async () => {
   }
   try {
     const res = await Search(method.value, path, editor.value.getText())
-    // 返回不是200也写入结果框
-    console.log(res)
     if (res.err !== "") {
       try {
         response.value.set(JSON.parse(res.err))
@@ -514,20 +453,17 @@ const sendRequest = async () => {
       }
     } else {
       response.value.set(res.result)
-      // 写入历史记录
       await write_history()
     }
   } catch (e) {
     message.error(e.message)
   }
   send_loading.value = false
-
 }
 
 const toTree = () => {
   editor.value.format();
 }
-
 
 function exportJson() {
   const blob = new Blob([response.value.getText()], {type: 'application/json'})
@@ -541,7 +477,6 @@ function exportJson() {
   URL.revokeObjectURL(url)
 }
 
-// 过滤和分页逻辑
 const filteredHistory = computed(() => {
   if (!searchText.value) {
     return history.value
@@ -552,7 +487,6 @@ const filteredHistory = computed(() => {
           item.dsl.includes(searchText.value)
     })
   }
-
 })
 
 const currentPageData = computed(() => {
@@ -750,12 +684,10 @@ const dslExamples = {
   height: 72dvh;
 }
 
-/* 隐藏ace编辑器的脱离聚焦时携带的光标 */
 .ace_editor:not(.ace_focus) .ace_cursor {
   opacity: 0 !important;
 }
 
-/* 使主题支持placeholder */
 .ace_editor .ace_placeholder {
   position: absolute;
   z-index: 10;

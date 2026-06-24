@@ -19,25 +19,25 @@
   <n-flex vertical>
 
     <n-flex align="center">
-      <h2>索引</h2>
-      <n-text>共计{{ data.length }}个</n-text>
+      <h2>{{ t('index.title') }}</h2>
+      <n-text>{{ t('index.total', { count: data.length }) }}</n-text>
     </n-flex>
     <n-flex align="center">
-      <n-input v-model:value="search_text" autosize placeholder="模糊搜索索引" style="min-width: 20%"
+      <n-input v-model:value="search_text" autosize :placeholder="t('index.fuzzySearch')" style="min-width: 20%"
                @keydown.enter="search"/>
 
       <n-button :render-icon="renderIcon(SearchFilled)" @click="search"></n-button>
-      <n-button :render-icon="renderIcon(AddFilled)" @click="CreateIndexDrawerVisible = true">添加索引</n-button>
-      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">导出为csv</n-button>
-      <n-button :render-icon="renderIcon(AnnouncementOutlined)" @click="queryAlias">读取别名</n-button>
+      <n-button :render-icon="renderIcon(AddFilled)" @click="CreateIndexDrawerVisible = true">{{ t('index.addIndex') }}</n-button>
+      <n-button :render-icon="renderIcon(DriveFileMoveTwotone)" @click="downloadAllDataCsv">{{ t('common.exportCsv') }}</n-button>
+      <n-button :render-icon="renderIcon(AnnouncementOutlined)" @click="queryAlias">{{ t('index.readAlias') }}</n-button>
       <n-button :loading="downloadIndexConfig.loading" :render-icon="renderIcon(DriveFileMoveTwotone)"
                 @click="downloadIndexConfig.show = true">
-        索引备份（预览）
+        {{ t('index.indexBackup') }}
       </n-button>
 
     </n-flex>
 
-    <n-spin :show="loading" description="Connecting...">
+    <n-spin :show="loading" :description="t('app.connecting')">
       <n-data-table
           ref="tableRef"
           v-model:checked-row-keys="selectedRowKeys"
@@ -52,25 +52,25 @@
     </n-spin>
     <n-flex align="center">
       <n-dropdown :options="bulk_options">
-        <n-button>批量操作</n-button>
+        <n-button>{{ t('index.batchAction') }}</n-button>
       </n-dropdown>
-      <n-text> 你选中了 {{ selectedRowKeys.length }} 行。</n-text>
+      <n-text> {{ t('index.selectedRows', { count: selectedRowKeys.length }) }}</n-text>
     </n-flex>
 
     <n-drawer v-model:show="downloadIndexConfig.show" style="width: 38.2%">
-      <n-drawer-content style="text-align: left;" title="索引备份（预览）">
+      <n-drawer-content style="text-align: left;" :title="t('index.indexBackup')">
         <n-flex vertical>
-          <n-p>【当前该功能还在测试中，使用请输入QQ群号，否则无法下载。如果遇到了bug，请反馈给群主。】</n-p>
-          输入要备份的索引名称
+          <n-p>{{ t('index.backupDesc') }}</n-p>
+          {{ t('index.backupIndexName') }}
           <n-input v-model:value="downloadIndexConfig.indexName"/>
-          输入查询dsl，不写默认查询所有
+          {{ t('index.backupDsl') }}
           <n-input v-model:value="downloadIndexConfig.dsl" style="min-height: 300px; max-height: 800px;"
                    type="textarea"/>
-          测试码，也就是QQ群号，请在github上查看
+          {{ t('index.backupCode') }}
           <n-input v-model:value="downloadIndexConfig.code"/>
           <n-flex align="center">
-            <n-button @click="downloadIndexConfig.show = false">取消</n-button>
-            <n-button :loading="downloadIndexConfig.loading" type="primary" @click="downloadIndex">开始下载</n-button>
+            <n-button @click="downloadIndexConfig.show = false">{{ t('common.cancel') }}</n-button>
+            <n-button :loading="downloadIndexConfig.loading" type="primary" @click="downloadIndex">{{ t('common.startDownload') }}</n-button>
           </n-flex>
           {{ downloadIndexConfig.msg }}
         </n-flex>
@@ -84,76 +84,62 @@
       </n-drawer-content>
     </n-drawer>
 
-    <!--    添加index-->
     <n-drawer v-model:show="CreateIndexDrawerVisible" style="width: 38.2%">
-      <n-drawer-content style="text-align: left;" title="创建索引">
+      <n-drawer-content style="text-align: left;" :title="t('index.createIndex')">
         <n-form
             ref="formRef"
             :model="indexConfig"
             :rules="{
-              name: {required: true, message: '请输入索引名称', trigger: 'blur'},
-              numberOfShards: {required: true, type: 'number', message: '请输入主分片', trigger: 'blur'},
-              numberOfReplicas: {required: true, type: 'number', message: '请输入副本数量', trigger: 'blur'},
+              name: {required: true, message: t('index.validateName'), trigger: 'blur'},
+              numberOfShards: {required: true, type: 'number', message: t('index.validateShards'), trigger: 'blur'},
+              numberOfReplicas: {required: true, type: 'number', message: t('index.validateReplicas'), trigger: 'blur'},
             }"
             label-placement="top"
             style="text-align: left;"
         >
-          <n-form-item label="索引名称" path="name">
+          <n-form-item :label="t('index.indexName')" path="name">
             <n-input v-model:value="indexConfig.name"/>
           </n-form-item>
-          <n-form-item label="主分片" path="numberOfShards">
+          <n-form-item :label="t('index.primaryShards')" path="numberOfShards">
             <n-input-number v-model:value="indexConfig.numberOfShards"/>
           </n-form-item>
-          <n-form-item label="副本数量" path="numberOfReplicas">
+          <n-form-item :label="t('index.replicas')" path="numberOfReplicas">
             <n-input-number v-model:value="indexConfig.numberOfReplicas"/>
           </n-form-item>
-          <n-p>mapping</n-p>
+          <n-p>{{ t('index.mapping') }}</n-p>
           <n-form-item path="mapping">
-            <n-input v-model:value="indexConfig.mapping" placeholder='输入mapping的json，例如
-{
-  "properties": {
-    "created_at": {
-      "type": "date",
-      "format": "yyyy-MM-dd HH:mm:ss"
-    }
-  }
-}' style="min-height: 300px; max-height: 800px;"
+            <n-input v-model:value="indexConfig.mapping" :placeholder='JSON.stringify({"properties":{"created_at":{"type":"date","format":"yyyy-MM-dd HH:mm:ss"}}}, null, 2)' style="min-height: 300px; max-height: 800px;"
                      type="textarea"/>
           </n-form-item>
         </n-form>
         <template #footer>
           <n-space justify="end">
-            <n-button @click="CreateIndexDrawerVisible = false">取消</n-button>
-            <n-button :loading="addIndexLoading" type="primary" @click="addIndex">保存</n-button>
+            <n-button @click="CreateIndexDrawerVisible = false">{{ t('common.cancel') }}</n-button>
+            <n-button :loading="addIndexLoading" type="primary" @click="addIndex">{{ t('common.save') }}</n-button>
           </n-space>
         </template>
       </n-drawer-content>
     </n-drawer>
 
-    <!--    添加doc-->
     <n-drawer v-model:show="addDocDrawerVisible" style="width: 38.2%">
-      <n-drawer-content style="text-align: left;" title="添加文档">
+      <n-drawer-content style="text-align: left;" :title="t('index.addDocument')">
         <n-form
             :model="docConfig"
             :rules="{
-              doc: {required: true, message: '请输入文档内容', trigger: 'blur'},
+              doc: {required: true, message: t('index.validateDoc'), trigger: 'blur'},
             }"
             label-placement="top"
             style="text-align: left;"
         >
-          <n-form-item label="文档内容" path="doc">
-            <n-input v-model:value="docConfig.doc" placeholder='输入文档的json，例如
-{
-  "field1": "value1",
-  "field2": "value2"
-}' style="min-height: 300px; max-height: 800px;"
+          <n-form-item :label="t('index.docContent')" path="doc">
+            <n-input v-model:value="docConfig.doc" :placeholder='JSON.stringify({"field1": "value1", "field2": "value2"}, null, 2)' style="min-height: 300px; max-height: 800px;"
                      type="textarea"/>
           </n-form-item>
         </n-form>
         <template #footer>
           <n-space justify="end">
-            <n-button @click="addDocDrawerVisible = false">取消</n-button>
-            <n-button :loading="addDocLoading" type="primary" @click="addDocumentFunc">保存</n-button>
+            <n-button @click="addDocDrawerVisible = false">{{ t('common.cancel') }}</n-button>
+            <n-button :loading="addDocLoading" type="primary" @click="addDocumentFunc">{{ t('common.save') }}</n-button>
           </n-space>
         </template>
       </n-drawer-content>
@@ -162,6 +148,7 @@
 </template>
 
 <script setup>
+import { useI18n } from 'vue-i18n'
 import {h, onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
 import {NButton, NDataTable, NDropdown, NIcon, NTag, NText, useDialog, useMessage} from 'naive-ui'
@@ -191,7 +178,8 @@ import {
   Refresh,
 } from "../../wailsjs/go/service/ESService";
 
-// 抽屉的可见性
+const { t } = useI18n()
+
 const drawerVisible = ref(false)
 const CreateIndexDrawerVisible = ref(false)
 const json_data = ref({})
@@ -214,7 +202,6 @@ const selectedRowKeys = ref([]);
 const rowKey = (row) => row.index
 let aliases = {};
 
-
 const downloadIndexConfig = ref({
   indexName: "",
   dsl: "",
@@ -225,21 +212,21 @@ const downloadIndexConfig = ref({
 });
 
 const downloadIndex = async () => {
-
-  const indexName = downloadIndexConfig.value.indexName; // 或者从其他地方获取
-  const dsl = downloadIndexConfig.value.dsl; // 或者从其他地方获取
+  const indexName = downloadIndexConfig.value.indexName;
+  const dsl = downloadIndexConfig.value.dsl;
 
   if (!indexName) {
-    message.error("请填写索引名");
+    message.error(t('index.fillIndexName'));
     return;
   }
   if (downloadIndexConfig.value.code !== "964440643") {
-    message.error("群号错误，请在github上查看");
+    message.error(t('index.codeError'));
     return;
   }
   const file_path = `/${indexName}-${Math.floor(Date.now() / 1000)}.json`
-  message.info("开始下载，请不要退出...数据json位置：" + file_path);
-  downloadIndexConfig.value.msg = "开始下载，请不要退出...数据json位置：" + file_path;
+  const downloadMsg = t('index.backupSuccess') + " " + file_path;
+  message.info(downloadMsg);
+  downloadIndexConfig.value.msg = downloadMsg;
 
   downloadIndexConfig.value.loading = true;
   try {
@@ -248,8 +235,8 @@ const downloadIndex = async () => {
       message.error(res.err);
       downloadIndexConfig.value.msg = res.err;
     } else {
-      message.success("备份成功");
-      downloadIndexConfig.value.msg = "备份成功";
+      message.success(t('index.backupSuccess'));
+      downloadIndexConfig.value.msg = t('index.backupSuccess');
       CreateIndexDrawerVisible.value = false;
     }
   } catch (e) {
@@ -266,7 +253,6 @@ const selectNode = (node) => {
   aliases = []
 }
 
-
 onMounted(() => {
   emitter.on('selectNode', selectNode)
 })
@@ -279,12 +265,9 @@ const search = async () => {
     message.error(e.message)
   }
   loading.value = false
-
 }
 
-
 const cacheData = (indexes) => {
-  // 缓存一下
   const key = 'es_king_indexes';
   let values = []
   const stored = localStorage.getItem(key);
@@ -328,7 +311,6 @@ const pagination = ref({
   itemCount: data.value.length
 })
 
-
 const getType = (value) => {
   const type = {
     "green": "success",
@@ -344,7 +326,7 @@ const columns = [
     type: "selection",
   },
   {
-    title: '索引名',
+    title: t('index.colIndexName'),
     key: 'index',
     width: 200,
     render: (row) => h(NText, {
@@ -355,60 +337,60 @@ const columns = [
         {default: () => row['index']}
     )
   },
-  {title: '别名', key: 'alias',   },
+  {title: t('index.colAlias'), key: 'alias',   },
   {
-    title: '健康',
+    title: t('index.colHealth'),
     key: 'health',
     render: (row) => h(NTag, {type: getType(row['health'])}, {default: () => row['health']}),
   },
   {
-    title: '状态',
+    title: t('index.colStatus'),
     key: 'status',
     render: (row) => h(NTag, {type: getType(row['status'])}, {default: () => row['status']}),
   },
   {
-    title: '主分片',
+    title: t('index.colPrimary'),
     key: 'pri',
     sorter: (a, b) => Number(a['pri']) - Number(b['pri'])
   },
   {
-    title: '副本',
+    title: t('index.colReplica'),
     key: 'rep',
     sorter: (a, b) => Number(a['rep']) - Number(b['rep'])
   },
   {
-    title: '文档总数',
+    title: t('index.colDocCount'),
     key: 'docs.count',
     sorter: (a, b) => Number(a['docs.count']) - Number(b['docs.count'])
   },
   {
-    title: '软删除文档',
+    title: t('index.colDeleted'),
     key: 'docs.deleted',
     sorter: (a, b) => Number(a['docs.deleted']) - Number(b['docs.deleted'])
   },
   {
-    title: '占用存储',
+    title: t('index.colStore'),
     key: 'store.size',
     sorter: (a, b) => Number(a['store.size']) - Number(b['store.size']),
-    render(row) {  // 这里要显示的是label，所以得转换一下
+    render(row) {
       return h('span', formatBytes(row['store.size']))
     }
   },
   {
-    title: '操作',
+    title: t('index.colActions'),
     key: 'actions',
     render: (row) => {
       const options = [
-        {label: '添加文档', key: 'addDocument'},
-        {label: '查看索引构成', key: 'viewDetails'},
-        {label: '别名', key: 'viewAlias'},
-        {label: '查看10条文档', key: 'viewDocs'},
-        {label: '段合并', key: 'mergeSegments'},
-        {label: '删除索引', key: 'deleteIndex'},
-        {label: row.status === 'close' ? '打开索引' : '关闭索引', key: 'openCloseIndex'},
-        {label: 'Refresh', key: 'refresh'},
-        {label: 'Flush', key: 'flush'},
-        {label: '清理缓存', key: 'clearCache'},
+        {label: t('index.actAddDoc'), key: 'addDocument'},
+        {label: t('index.actViewDetails'), key: 'viewDetails'},
+        {label: t('index.actViewAlias'), key: 'viewAlias'},
+        {label: t('index.actViewDocs'), key: 'viewDocs'},
+        {label: t('index.actMerge'), key: 'mergeSegments'},
+        {label: t('index.actDelete'), key: 'deleteIndex'},
+        {label: row.status === 'close' ? t('index.actOpen') : t('index.actClose'), key: 'openCloseIndex'},
+        {label: t('index.actRefresh'), key: 'refresh'},
+        {label: t('index.actFlush'), key: 'flush'},
+        {label: t('index.actClearCache'), key: 'clearCache'},
       ]
       return h(
           NDropdown,
@@ -424,7 +406,7 @@ const columns = [
                   strong: true,
                   secondary: true,
                 },
-                {default: () => '操作', icon: () => h(NIcon, null, {default: () => h(MoreVertFilled)})}
+                {default: () => t('common.operation'), icon: () => h(NIcon, null, {default: () => h(MoreVertFilled)})}
             )
           }
       )
@@ -454,7 +436,6 @@ const handleMenuSelect = async (key, row) => {
   loading.value = false
 }
 
-// 定义各种操作函数
 const addDocDrawerVisible = ref(false);
 const addDocLoading = ref(false);
 const docConfig = ref({
@@ -468,21 +449,20 @@ const addDocument = async (row) => {
 }
 const addDocumentFunc = async () => {
   if (!docConfig.value.doc) {
-    message.error("请输入文档内容")
+    message.error(t('index.validateDoc'))
     return
   }
   if (!isValidJson(docConfig.value.doc)) {
-    message.error("文档内容不是合法的json")
+    message.error(t('common.fillRequired'))
     return
   }
   addDocLoading.value = true;
   try {
     const res = await AddDocument(docConfig.value.index, docConfig.value.doc);
-    console.log(res);
     if (res.err !== "") {
       message.error(res.err);
     } else {
-      message.success(`文档添加成功，id：` + res.result['_id']);
+      message.success(t('index.docAdded', { id: res.result['_id'] }));
       await search();
     }
   } catch (e) {
@@ -494,7 +474,6 @@ const addDocumentFunc = async () => {
     docConfig.value.doc = "";
   }
 }
-
 
 const viewIndexDetails = async (row) => {
   const res = await GetIndexInfo(row.index)
@@ -534,10 +513,10 @@ const viewIndexDocs = async (row) => {
 }
 const mergeSegments = async (row) => {
   dialog.info({
-    title: '警告',
-    content: `确定要对索引 ${row.index} 执行 段合并 吗？段合并非常耗资源，将提交给ES后台执行`,
-    positiveText: '确定',
-    negativeText: '取消',
+    title: t('common.warning'),
+    content: t('index.confirmMerge', { name: row.index }),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       await mergeSegmentsFunc(row)
     }
@@ -551,16 +530,16 @@ const mergeSegmentsFunc = async (row) => {
     json_data.value = formattedJson(res.result)
     drawer_title.value = row.index
     drawerVisible.value = true
-    message.success("已提交段合并请求，段合并是重IO任务，请注意集群负载")
+    message.success(t('index.mergeSubmitted'))
     await search()
   }
 }
 const deleteIndex = async (row) => {
   dialog.info({
-    title: '警告',
-    content: `确定要删除索引 ${row.index} 吗？`,
-    positiveText: '确定',
-    negativeText: '取消',
+    title: t('common.warning'),
+    content: t('index.confirmDelete', { name: row.index }),
+    positiveText: t('common.confirm'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       await deleteIndexFunc(row)
     }
@@ -575,7 +554,6 @@ const deleteIndexFunc = async (row) => {
     drawer_title.value = row.index
     drawerVisible.value = true
     await search()
-
   }
 }
 const openCloseIndex = async (row) => {
@@ -587,7 +565,6 @@ const openCloseIndex = async (row) => {
     drawer_title.value = row.index
     drawerVisible.value = true
     await search()
-
   }
 }
 const refreshIndex = async (row) => {
@@ -619,18 +596,16 @@ const clearCache = async (row) => {
     drawer_title.value = row.index
     drawerVisible.value = true
     await search()
-
   }
 }
 const addIndexLoading = ref(false)
 const addIndex = async () => {
   formRef.value?.validate(async (errors) => {
     if (!errors) {
-      // 测试mapping有的话，能不能json格式化
       if (indexConfig.value.mapping) {
         const err = isValidJson(indexConfig.value.mapping)
         if (!err) {
-          message.error("mapping不是合法的json格式")
+          message.error(t('index.invalidMapping'))
           return
         }
       }
@@ -641,7 +616,7 @@ const addIndex = async () => {
         if (res.err !== "") {
           message.error(res.err)
         } else {
-          message.success(`索引【${indexConfig.value.name}】创建成功`)
+          message.success(t('index.indexCreated', { name: indexConfig.value.name }))
           await search()
         }
       } catch (e) {
@@ -651,16 +626,16 @@ const addIndex = async () => {
         CreateIndexDrawerVisible.value = false
       }
     } else {
-      message.error('请填写所有必填字段')
+      message.error(t('common.fillRequired'))
     }
   })
 }
 
-// 下载所有数据的 CSV 文件
 const downloadAllDataCsv = async () => {
   const csvContent = createCsvContent(data.value, columns)
-  download_file(csvContent, '索引列表.csv', 'text/csv;charset=utf-8;')
+  download_file(csvContent, t('index.csvFileName'), 'text/csv;charset=utf-8;')
 }
+
 const queryAlias = async () => {
   loading.value = true
   let name_lst = []
@@ -677,12 +652,7 @@ const queryAlias = async () => {
       message.error(res.err)
       return
     }
-    // 合并别名缓存
-    // {
-    //   "23": "xcx",
-    // }
     aliases = {...aliases, ...res.result}
-    console.log(aliases)
     for (const k in data.value) {
       const alias = aliases[data.value[k].index]
       if (alias) {
@@ -707,24 +677,22 @@ const bulk_delete = async () => {
       success_count += 1
     }
   }
-  // 重置
   selectedRowKeys.value = []
-  // 提示删除了几个，失败了几个
-  message.success(`成功删除 ${success_count} 个索引`)
+  message.success(t('index.downloadSuccess', { count: success_count }))
   loading.value = false
   await search()
 }
 const bulk_options = [
   {
-    label: '批量删除',
+    label: t('common.delete'),
     key: 'bulk_delete',
     props: {
       onClick: async () => {
         dialog.info({
-          title: '警告',
-          content: `确定要删除索引 ${selectedRowKeys.value} 吗？`,
-          positiveText: '确定',
-          negativeText: '取消',
+          title: t('common.warning'),
+          content: t('index.confirmBatchDelete', { names: selectedRowKeys.value }),
+          positiveText: t('common.confirm'),
+          negativeText: t('common.cancel'),
           onPositiveClick: async () => {
             await bulk_delete()
           }
@@ -734,7 +702,6 @@ const bulk_options = [
   },
 ]
 </script>
-
 
 <style scoped>
 

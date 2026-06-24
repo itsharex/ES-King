@@ -18,18 +18,16 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2>健康</h2>
+      <h2>{{ t('health.title') }}</h2>
       <n-button :render-icon="renderIcon(RefreshOutlined)" text @click="getData">refresh</n-button>
-
     </n-flex>
-    <n-spin :show="loading" description="Connecting...">
-
+    <n-spin :show="loading" :description="t('app.connecting')">
       <n-table :bordered="false" :single-line="false">
         <thead>
         <tr>
-          <th>健康指标</th>
-          <th>值</th>
-          <th>完整键</th>
+          <th>{{ t('health.metrics') }}</th>
+          <th>{{ t('health.value') }}</th>
+          <th>{{ t('health.fullKey') }}</th>
         </tr>
         </thead>
         <tbody>
@@ -46,25 +44,25 @@
             </n-tooltip>
           </td>
           <td>{{ key }}</td>
-
         </tr>
         </tbody>
       </n-table>
     </n-spin>
   </n-flex>
-
 </template>
 <script setup>
-import {onActivated, onMounted, ref} from "vue";
+import { useI18n } from 'vue-i18n'
+import {onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
 import {useMessage} from "naive-ui";
 import {GetHealth} from "../../wailsjs/go/service/ESService";
 import {renderIcon} from "../utils/common";
 import {RefreshOutlined} from "@vicons/material";
 
+const { t } = useI18n()
+
 const data = ref({})
 const loading = ref(false)
-
 const message = useMessage()
 
 const selectNode = async (node) => {
@@ -76,7 +74,6 @@ onMounted(() => {
   getData()
 })
 
-
 const getData = async () => {
   loading.value = true
   const res = await GetHealth()
@@ -85,11 +82,8 @@ const getData = async () => {
   } else {
     data.value = res.result
     emitter.emit('changeTitleType', getTagType("status", res.result['status']))
-
   }
-  console.log(data.value)
   loading.value = false
-
 }
 
 const getTagType = (key, value) => {
@@ -99,7 +93,6 @@ const getTagType = (key, value) => {
   if (['unassigned_shards', 'delayed_unassigned_shards', 'initializing_shards'].includes(key)) {
     return 'warning'
   }
-
   if (key === 'timed_out') {
     return value === true ? 'error' : 'success'
   }
@@ -115,23 +108,23 @@ const getTagType = (key, value) => {
 
 const getLabel = (key) => {
   const descriptions = {
-    cluster_name: '集群名称',
-    status: '集群健康状态（绿色、黄色、红色）',
-    timed_out: '请求是否超时',
-    number_of_nodes: '集群中的节点数',
-    number_of_data_nodes: '集群中的数据节点数',
-    active_primary_shards: '活跃的主分片数',
-    active_shards: '活跃的总分片数',
-    relocating_shards: '正在重新定位的分片数',
-    initializing_shards: '正在初始化的分片数',
-    unassigned_shards: '未分配的分片数',
-    delayed_unassigned_shards: '延迟未分配的分片数',
-    number_of_pending_tasks: '等待中的集群级任务数',
-    number_of_in_flight_fetch: '正在进行的分片数据获取数',
-    task_max_waiting_in_queue_millis: '任务在队列中的最长等待时间（毫秒）',
-    active_shards_percent_as_number: '活跃分片百分比'
+    cluster_name: t('health.descriptions.cluster_name'),
+    status: t('health.descriptions.status'),
+    timed_out: t('health.descriptions.timed_out'),
+    number_of_nodes: t('health.descriptions.number_of_nodes'),
+    number_of_data_nodes: t('health.descriptions.number_of_data_nodes'),
+    active_primary_shards: t('health.descriptions.active_primary_shards'),
+    active_shards: t('health.descriptions.active_shards'),
+    relocating_shards: t('health.descriptions.relocating_shards'),
+    initializing_shards: t('health.descriptions.initializing_shards'),
+    unassigned_shards: t('health.descriptions.unassigned_shards'),
+    delayed_unassigned_shards: t('health.descriptions.delayed_unassigned_shards'),
+    number_of_pending_tasks: t('health.descriptions.number_of_pending_tasks'),
+    number_of_in_flight_fetch: t('health.descriptions.number_of_in_flight_fetch'),
+    task_max_waiting_in_queue_millis: t('health.descriptions.task_max_waiting_in_queue_millis'),
+    active_shards_percent_as_number: t('health.descriptions.active_shards_percent_as_number'),
   }
-  return descriptions[key] || '暂无说明'
+  return descriptions[key] || t('common.noDescription')
 }
 
 </script>

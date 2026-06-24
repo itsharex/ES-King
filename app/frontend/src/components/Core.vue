@@ -18,19 +18,18 @@
 <template>
   <n-flex vertical>
     <n-flex align="center">
-      <h2>指标</h2>
+      <h2>{{ t('core.title') }}</h2>
       <n-button @click="getData" text :render-icon="renderIcon(RefreshOutlined)">refresh</n-button>
-
     </n-flex>
-    <n-spin :show="loading" description="Connecting...">
+    <n-spin :show="loading" :description="t('app.connecting')">
       <n-collapse>
         <n-collapse-item v-for="(item_v, item_k) in collapse_item" :name="item_v" :title="item_v">
           <n-table :single-line="false" size="small">
             <thead>
             <tr>
-              <th>说明</th>
-              <th>值</th>
-              <th>key</th>
+              <th>{{ t('core.description') }}</th>
+              <th>{{ t('core.value') }}</th>
+              <th>{{ t('core.key') }}</th>
             </tr>
             </thead>
             <tbody>
@@ -48,19 +47,20 @@
           </n-table>
         </n-collapse-item>
       </n-collapse>
-
     </n-spin>
   </n-flex>
 </template>
 
-
 <script setup>
+import { useI18n } from 'vue-i18n'
 import {onMounted, ref} from "vue";
 import emitter from "../utils/eventBus";
 import {useMessage} from "naive-ui";
 import {GetStats} from "../../wailsjs/go/service/ESService";
 import {flattenObject, renderIcon} from "../utils/common";
 import {RefreshOutlined} from "@vicons/material";
+
+const { t } = useI18n()
 
 const loading = ref(false)
 const data = ref({})
@@ -76,13 +76,14 @@ onMounted(() => {
 })
 
 const collapse_item = {
-  'node': '节点',
-  'memory': '内存',
-  'indices': '索引',
-  'doc': '文档',
-  'shard': '分片',
-  'store': '存储'
+  'node': t('core.categories.node'),
+  'memory': t('core.categories.memory'),
+  'indices': t('core.categories.indices'),
+  'doc': t('core.categories.doc'),
+  'shard': t('core.categories.shard'),
+  'store': t('core.categories.store')
 }
+
 const getData = async () => {
   loading.value = true
   const res = await GetStats()
@@ -91,11 +92,9 @@ const getData = async () => {
   } else {
     data.value = flattenObject(res.result)
   }
-  console.log(data.value)
   loading.value = false
-
 }
-// 方法，返回过滤后的数据
+
 const filterByKey = (data, searchString) => {
   const result = {};
   for (const [key, value] of Object.entries(data)) {
@@ -228,9 +227,8 @@ const getLabel = (key) => {
     "status": '集群健康状态（绿色、黄色、红色）',
     "timestamp": '报告的时间戳'
   };
-  return descriptions[key] || '暂无说明'
+  return descriptions[key] || t('common.noDescription')
 }
-
 
 </script>
 

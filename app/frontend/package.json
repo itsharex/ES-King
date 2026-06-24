@@ -13,7 +13,8 @@
     "highlight.js": "^11.10.0",
     "jsoneditor": "^10.1.0",
     "mitt": "^3.0.1",
-    "vue": "^3.5.8"
+    "vue": "^3.5.8",
+    "vue-i18n": "^9.14.4"
   },
   "devDependencies": {
     "@vicons/material": "^0.12.0",
